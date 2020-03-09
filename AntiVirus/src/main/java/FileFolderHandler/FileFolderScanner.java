@@ -8,8 +8,6 @@ import java.security.NoSuchAlgorithmException;
 
 import javax.inject.Inject;
 
-import org.springframework.stereotype.Controller;
-
 import FileFolderHandler.entities.FileDB;
 import FileFolderHandler.entities.FolderDB;
 import FileFolderHandler.repositories.FileRepo;
@@ -17,7 +15,7 @@ import FileFolderHandler.repositories.FolderRepo;
 
 
 public class FileFolderScanner {
-
+	
 	@Inject
 	private FileRepo fileRepo;
 	@Inject
@@ -25,6 +23,10 @@ public class FileFolderScanner {
 
 	public void scanFolder(FolderDB dir) {
 		try {
+			System.out.println("start waiting");
+			while(folderRepo == null || fileRepo== null)
+				Thread.sleep(10);
+			System.out.println("done waiting");
 			if (!folderRepo.existsById(dir.getPath()))
 				folderRepo.save(dir);
 			File[] files = dir.getIOFolder().listFiles();
@@ -41,7 +43,7 @@ public class FileFolderScanner {
 						fileRepo.save(fileDb);
 				}
 			}
-		} catch (NoSuchAlgorithmException e) {
+		} catch (NoSuchAlgorithmException | InterruptedException e) {
 			e.printStackTrace();
 		}
 	}
