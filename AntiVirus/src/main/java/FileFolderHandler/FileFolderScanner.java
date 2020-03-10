@@ -6,13 +6,8 @@ import java.io.InputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-import javax.inject.Inject;
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.stereotype.Component;
-
-import com.sun.istack.NotNull;
 
 import FileFolderHandler.entities.FileDB;
 import FileFolderHandler.entities.FolderDB;
@@ -20,7 +15,6 @@ import FileFolderHandler.repositories.FileRepo;
 import FileFolderHandler.repositories.FolderRepo;
 
 @Component
-@Configurable
 public class FileFolderScanner {
 	
 	@Autowired
