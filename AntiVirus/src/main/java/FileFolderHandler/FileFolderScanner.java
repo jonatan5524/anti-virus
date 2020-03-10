@@ -9,6 +9,7 @@ import java.security.NoSuchAlgorithmException;
 import javax.inject.Inject;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.stereotype.Component;
 
 import com.sun.istack.NotNull;
@@ -19,6 +20,7 @@ import FileFolderHandler.repositories.FileRepo;
 import FileFolderHandler.repositories.FolderRepo;
 
 @Component
+@Configurable
 public class FileFolderScanner {
 	
 	@Autowired

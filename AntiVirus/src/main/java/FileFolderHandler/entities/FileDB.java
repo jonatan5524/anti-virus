@@ -11,10 +11,11 @@ import javax.persistence.Transient;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 @Entity
 @Table(name = "FileDB")
-
+@ToString
 public class FileDB {
 
 	@Getter

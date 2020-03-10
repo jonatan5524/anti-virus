@@ -4,20 +4,27 @@ import java.io.File;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import FileFolderHandler.FileFolderScanner;
 import FileFolderHandler.entities.FolderDB;
 
 @SpringBootApplication
 public class Main {
-	
-	
-	
+
 	public static void main(String[] args) {
-		SpringApplication.run(Main.class,args);
+		SpringApplication.run(Main.class, args);
 		
 		FileFolderScanner scanner = new FileFolderScanner();
 		scanner.scanFolder(new FolderDB(null, "E", "E:\\", new File("E:\\")));
 		scanner.debug();
+
+		/*
+		 * @SuppressWarnings("resource") ApplicationContext ctx = new
+		 * ClassPathXmlApplicationContext("beans.xml"); FileFolderScanner scanner =
+		 * ctx.getBean(FileFolderScanner.class); scanner.scanFolder(new FolderDB(null,
+		 * "E", "E:\\", new File("E:\\"))); scanner.debug();
+		 */
 	}
 }
