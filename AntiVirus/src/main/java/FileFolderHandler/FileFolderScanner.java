@@ -6,6 +6,8 @@ import java.io.InputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+import javax.annotation.PostConstruct;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -16,29 +18,36 @@ import FileFolderHandler.repositories.FolderRepo;
 
 @Component
 public class FileFolderScanner {
-	
+
 	@Autowired
 	private FileRepo fileRepo;
 	@Autowired
 	private FolderRepo folderRepo;
 
+	// @PostConstruct
 	public void scanFolder(FolderDB dir) {
 		try {
-			
-			if (!folderRepo.existsById(dir.getPath()))
+			System.out.println(dir.getPath());
+			if (!folderRepo.existsByPath(dir.getPath()))
 				folderRepo.save(dir);
 			File[] files = dir.getIOFolder().listFiles();
 			for (File file : files) {
 				if (file.isDirectory()) {
-					FolderDB folderTemp = new FolderDB(dir, file.getName(), file.getPath(), file);
-					if (!folderRepo.existsById(file.getPath()))
+					FolderDB folderTemp;
+					if (!folderRepo.existsByPath(file.getPath())) {
+					//	folderTemp = new FolderDB(dir, file.getName(), file.getPath(), file);
+						folderTemp = new FolderDB(file.getName(), file.getPath(), file);
 						folderRepo.save(folderTemp);
+					} else
+						folderTemp = folderRepo.findByPath(file.getPath());
 					scanFolder(folderTemp);
 				} else {
+
 					MessageDigest md = MessageDigest.getInstance("MD5");
-					FileDB fileDb = new FileDB(checksum(file, md), dir, file.getName(), file.getPath(), file);
-					if (!fileRepo.existsById(file.getPath()))
-						fileRepo.save(fileDb);
+					if (!fileRepo.existsByPath(file.getPath())) {
+						//fileRepo.save(new FileDB(checksum(file, md), dir, file.getName(), file.getPath(), file));
+						fileRepo.save(new FileDB(checksum(file, md),  file.getName(), file.getPath(), file));
+					}
 				}
 			}
 		} catch (NoSuchAlgorithmException | NullPointerException e) {

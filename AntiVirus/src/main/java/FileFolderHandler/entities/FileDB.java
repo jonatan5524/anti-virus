@@ -2,7 +2,10 @@ package FileFolderHandler.entities;
 
 import java.io.File;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
@@ -10,27 +13,36 @@ import javax.persistence.Transient;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
 @Entity
-@Table(name = "FileDB")
+@Table(name = "filedb")
 @ToString
+@NoArgsConstructor
 public class FileDB {
 
+	@Id
+	@Column(name="id")
+	@GeneratedValue(strategy =  GenerationType.SEQUENCE)
+	private Long Id;
+	
 	@Getter
 	@Setter
+	@Column(name="hash")
 	private String hash;
 
-	@OneToOne
+/*	@OneToOne
 	@Getter
 	private FolderDB father;
-
+*/
 	@Getter
 	@Setter
+	@Column(name="name")
 	private String name;
 
-	@Id
+	@Column(name = "path",nullable = false,unique = true)
 	@Getter
 	private String path;
 
@@ -43,9 +55,9 @@ public class FileDB {
 	@Transient
 	private File IOFile;
 
-	public FileDB(String hash, FolderDB father, String name, String path, File IOFile) {
+	public FileDB(String hash, String name, String path, File IOFile) {
 		this.hash = hash;
-		this.father = father;
+		//this.father = father;
 		this.name = name;
 	}
 
