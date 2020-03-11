@@ -24,7 +24,6 @@ public class FileFolderScanner {
 	@Autowired
 	private FolderRepo folderRepo;
 
-	// @PostConstruct
 	public void scanFolder(FolderDB dir) {
 		try {
 			System.out.println(dir.getPath());

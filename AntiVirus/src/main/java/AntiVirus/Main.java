@@ -27,15 +27,11 @@ public class Main {
 		FileFolderScanner scanner = new AppConfig().fileFolderScanner();
 		AutowireCapableBeanFactory factory = ctx.getAutowireCapableBeanFactory();
 		factory.autowireBean( scanner );
-		//factory.initializeBean( scanner, "FileFolderScanner" );
-		
+		long start_time = System.nanoTime();
 		scanner.scanFolder(new FolderDB( "E", "E:\\", new File("E:\\")));
+		long end_time = System.nanoTime();
+		double difference = (end_time - start_time) / 1e6;
 		scanner.debug();
-		/*
-		 * @SuppressWarnings("resource") ApplicationContext ctx = new
-		 * ClassPathXmlApplicationContext("beans.xml"); FileFolderScanner scanner =
-		 * ctx.getBean(FileFolderScanner.class); scanner.scanFolder(new FolderDB(null,
-		 * "E", "E:\\", new File("E:\\"))); scanner.debug();
-		 */
+		System.out.println("runtime: "+difference);
 	}
 }

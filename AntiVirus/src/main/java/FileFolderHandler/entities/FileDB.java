@@ -42,7 +42,7 @@ public class FileDB {
 	@Column(name="name")
 	private String name;
 
-	@Column(name = "path",nullable = false,unique = true)
+	@Column(name = "path",unique = true)
 	@Getter
 	private String path;
 
