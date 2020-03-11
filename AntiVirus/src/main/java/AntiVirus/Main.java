@@ -8,17 +8,15 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
-import FileFolderHandler.FileFolderScanner;
-import FileFolderHandler.entities.FolderDB;
+import AntiVirus.FileFolderHandler.FileFolderScanner;
+import AntiVirus.FileFolderHandler.entities.FolderDB;
 
 @SpringBootApplication
-@ComponentScan("FileFolderHandler")
-@EntityScan("FileFolderHandler.entities")
-@EnableJpaRepositories("FileFolderHandler.repositories")
+@ComponentScan("AntiVirus.FileFolderHandler")
+@EntityScan("AntiVirus.FileFolderHandler")
+@EnableJpaRepositories("AntiVirus.FileFolderHandler")
 public class Main {
 	
 	public static void main(String[] args) {
@@ -33,5 +31,6 @@ public class Main {
 		double difference = (end_time - start_time) / 1e6;
 		scanner.debug();
 		System.out.println("runtime: "+difference);
+		
 	}
 }

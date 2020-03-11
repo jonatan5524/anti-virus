@@ -1,20 +1,21 @@
-package FileFolderHandler;
+package AntiVirus.FileFolderHandler;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Scanner;
 
 import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import FileFolderHandler.entities.FileDB;
-import FileFolderHandler.entities.FolderDB;
-import FileFolderHandler.repositories.FileRepo;
-import FileFolderHandler.repositories.FolderRepo;
+import AntiVirus.FileFolderHandler.entities.FileDB;
+import AntiVirus.FileFolderHandler.entities.FolderDB;
+import AntiVirus.FileFolderHandler.repositories.FileRepo;
+import AntiVirus.FileFolderHandler.repositories.FolderRepo;
 
 @Component
 public class FileFolderScanner {
@@ -26,7 +27,7 @@ public class FileFolderScanner {
 
 	public void scanFolder(FolderDB dir) {
 		try {
-			System.out.println(dir.getPath());
+
 			if (!folderRepo.existsByPath(dir.getPath()))
 				folderRepo.save(dir);
 			File[] files = dir.getIOFolder().listFiles();
@@ -34,7 +35,7 @@ public class FileFolderScanner {
 				if (file.isDirectory()) {
 					FolderDB folderTemp;
 					if (!folderRepo.existsByPath(file.getPath())) {
-					//	folderTemp = new FolderDB(dir, file.getName(), file.getPath(), file);
+						System.out.println(file.getPath());
 						folderTemp = new FolderDB(file.getName(), file.getPath(), file);
 						folderRepo.save(folderTemp);
 					} else
@@ -44,8 +45,8 @@ public class FileFolderScanner {
 
 					MessageDigest md = MessageDigest.getInstance("MD5");
 					if (!fileRepo.existsByPath(file.getPath())) {
-						//fileRepo.save(new FileDB(checksum(file, md), dir, file.getName(), file.getPath(), file));
-						fileRepo.save(new FileDB(checksum(file, md),  file.getName(), file.getPath(), file));
+						System.out.println(file.getPath());
+						fileRepo.save(new FileDB(checksum(file, md), file.getName(), file.getPath(), file));
 					}
 				}
 			}

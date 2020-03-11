@@ -1,4 +1,4 @@
-package FileFolderHandler.entities;
+package AntiVirus.FileFolderHandler.entities;
 
 import lombok.Getter;
 

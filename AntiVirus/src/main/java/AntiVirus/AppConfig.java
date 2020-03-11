@@ -3,7 +3,7 @@ package AntiVirus;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import FileFolderHandler.FileFolderScanner;
+import AntiVirus.FileFolderHandler.FileFolderScanner;
 
 @Configuration
 public class AppConfig {
