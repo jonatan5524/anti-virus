@@ -10,6 +10,9 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import AntiVirus.FileFolderHandler.FileFolderScanner;
+import AntiVirus.FileFolderHandler.ScanningAlgorithem.ScanningAlgorithemTemplate;
+import AntiVirus.FileFolderHandler.ScanningAlgorithem.ScanningBFS;
+import AntiVirus.FileFolderHandler.ScanningAlgorithem.ScanningDFS;
 import AntiVirus.Scanner.ScannerScheduler;
 
 @Configuration
@@ -20,6 +23,13 @@ import AntiVirus.Scanner.ScannerScheduler;
 @EnableScheduling
 public class AppConfig {
 
+	// Default Method: BFS, can be changed using Set method
+	@Bean
+	public ScanningAlgorithemTemplate scanningAlgorithemTemplate()
+	{
+		return new ScanningBFS();
+	}
+	
 	@Bean
 	public ScannerScheduler scannerScheduler() {
 		return new ScannerScheduler();
