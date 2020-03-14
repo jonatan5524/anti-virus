@@ -35,6 +35,8 @@ public class ScannerScheduler {
 		{
 			scanner.setScanningMethod(new ScanningBFS());
 			taskExecutor.execute(scanner);
+			
+			
 		}
 		
 	}
