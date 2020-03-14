@@ -2,6 +2,7 @@ package AntiVirus.FileFolderHandler;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -42,43 +43,41 @@ public class FileFolderScanner implements Runnable {
 	@Getter
 	private boolean scanning = false;
 
-	private void scanFolder(FolderDB dir) {
-		try {
-			FolderDB folderTemp;
-			MessageDigest md = MessageDigest.getInstance("MD5");
-			scanningMethod.add(dir);
+	private void scanFolder(FolderDB dir) throws NoSuchAlgorithmException {
+		FolderDB folderTemp;
+		MessageDigest md = MessageDigest.getInstance("MD5");
+		scanningMethod.init();
 
-			// queue for DFS
-			while (!scanningMethod.isEmpty()) {
+		scanningMethod.add(dir);
 
-				dir = scanningMethod.remove();
-				File[] files = dir.getIOFolder().listFiles();
-				if (files != null) {
-					// go over all the files and sub directory in the current directory
-					for (File file : files) {
-						// if is a sub directory add to queue and to repository if needed
-						if (file.isDirectory()) {
-							if (!folderRepo.existsByPath(file.getPath())) {
-								// System.out.println(file.getPath());
-								folderTemp = new FolderDB(file.getName(), file.getPath(), file);
-								folderRepo.save(folderTemp);
-							} else
-								folderTemp = folderRepo.findByPath(file.getPath());
-							scanningMethod.add(folderTemp);
-							// if is a file add to repository if needed
-						} else {
-							if (!fileRepo.existsByPath(file.getPath())) {
-								// System.out.println(file.getPath());
-								fileRepo.save(new FileDB(checksum(file, md), file.getName(), file.getPath(), file));
-							}
+		while (!scanningMethod.isEmpty()) {
+
+			dir = scanningMethod.remove();
+			File[] files = dir.getIOFolder().listFiles();
+			if (files != null) {
+				// go over all the files and sub directory in the current directory
+				for (File file : files) {
+					// if is a sub directory add to queue and to repository if needed
+					if (file.isDirectory()) {
+						if (!folderRepo.existsByPath(file.getPath())) {
+							System.out.println(file.getPath());
+							folderTemp = new FolderDB(file.getName(), file.getPath(), file);
+							folderRepo.save(folderTemp);
+						} else
+							folderTemp = folderRepo.findByPath(file.getPath());
+						scanningMethod.add(folderTemp);
+						// if is a file add to repository if needed
+					} else {
+						if (!fileRepo.existsByPath(file.getPath())) {
+							System.out.println(file.getPath());
+							fileRepo.save(new FileDB(checksum(file, md), file.getName(), file.getPath(), file));
 						}
 					}
 				}
-
 			}
-		} catch (NoSuchAlgorithmException | NullPointerException e) {
-			e.printStackTrace();
+
 		}
+
 	}
 
 	private final String checksum(File input, MessageDigest md) {
@@ -91,8 +90,8 @@ public class FileFolderScanner implements Runnable {
 			return md.digest().toString();
 		} catch (Exception e) {
 			e.printStackTrace();
+			return "";
 		}
-		return null;
 	}
 
 	public void debug() {
@@ -127,7 +126,12 @@ public class FileFolderScanner implements Runnable {
 		System.out.println("scanning method: " + scanningMethod.getClass());
 		for (FolderDB dir : hardDrives) {
 			System.out.println("starting scan in hardrive: " + dir.getPath());
-			scanFolder(dir);
+			try {
+				scanFolder(dir);
+			} catch (NoSuchAlgorithmException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			System.out.println("scan ended on hardrive: " + dir.getPath());
 		}
 		now = LocalDateTime.now();
