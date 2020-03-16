@@ -1,11 +1,11 @@
-package AntiVirus.FileFolderHandler.ScanningAlgorithem;
+package AntiVirus.Scanner.FileFolderHandler.ScanningAlgorithem;
 
 import java.util.Stack;
 
-public class ScanningBFS<T> implements ScanningAlgorithemTemplate<T>{
+public class ScanningBFS<T> implements ScanningAlgorithemTemplate<T> {
 
 	private Stack<T> stack;
-	
+
 	@Override
 	public void init() {
 		stack = new Stack<T>();
@@ -25,5 +25,5 @@ public class ScanningBFS<T> implements ScanningAlgorithemTemplate<T>{
 	public boolean isEmpty() {
 		return stack.isEmpty();
 	}
-	
+
 }

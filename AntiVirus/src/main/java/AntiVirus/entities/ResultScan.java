@@ -1,4 +1,4 @@
-package AntiVirus.FileFolderHandler.entities;
+package AntiVirus.entities;
 
 import java.util.Dictionary;
 
@@ -11,6 +11,5 @@ public class ResultScan {
 	private boolean result;
 	@Getter
 	private Dictionary<FileAnalyzer, Boolean> resultAnalyzer;
-	
 
 }

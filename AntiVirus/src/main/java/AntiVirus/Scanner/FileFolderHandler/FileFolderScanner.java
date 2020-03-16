@@ -1,30 +1,20 @@
-package AntiVirus.FileFolderHandler;
+package AntiVirus.Scanner.FileFolderHandler;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.sql.Date;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.Scanner;
-
-import javax.annotation.PostConstruct;
-import javax.swing.filechooser.FileSystemView;
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.stereotype.Component;
 
-import AntiVirus.FileFolderHandler.ScanningAlgorithem.ScanningAlgorithemTemplate;
-import AntiVirus.FileFolderHandler.entities.FileDB;
-import AntiVirus.FileFolderHandler.entities.FolderDB;
-import AntiVirus.FileFolderHandler.repositories.FileRepo;
-import AntiVirus.FileFolderHandler.repositories.FolderRepo;
+import AntiVirus.Scanner.FileFolderHandler.ScanningAlgorithem.ScanningAlgorithemTemplate;
+import AntiVirus.entities.FileDB;
+import AntiVirus.entities.FolderDB;
+import AntiVirus.repositories.FileRepo;
+import AntiVirus.repositories.FolderRepo;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

@@ -1,4 +1,4 @@
-package AntiVirus.FileFolderHandler.entities;
+package AntiVirus.entities;
 
 import java.io.File;
 
@@ -18,16 +18,20 @@ import lombok.Setter;
 import lombok.ToString;
 
 @Entity
-@Table(name = "folderdb")
-
+@Table(name = "filedb")
 @ToString
 @NoArgsConstructor
-public class FolderDB {
+public class FileDB {
 
 	@Id
 	@Column(name = "id")
 	@GeneratedValue(strategy = GenerationType.SEQUENCE)
 	private Long Id;
+
+	@Getter
+	@Setter
+	@Column(name = "hash")
+	private String hash;
 
 	/*
 	 * @OneToOne
@@ -44,14 +48,18 @@ public class FolderDB {
 	private String path;
 
 	@Getter
+	@Setter
 	@Transient
-	private File IOFolder;
+	private ResultScan resultScan;
 
-	public FolderDB(String name, String path, File iOFolder) {
+	@Getter
+	@Transient
+	private File IOFile;
+
+	public FileDB(String hash, String name, String path, File IOFile) {
+		this.hash = hash;
 		// this.father = father;
 		this.name = name;
-		this.path = path;
-		this.IOFolder = iOFolder;
 	}
 
 }

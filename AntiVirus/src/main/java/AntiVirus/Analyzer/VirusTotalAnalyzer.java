@@ -1,12 +1,12 @@
 package AntiVirus.Analyzer;
 
-import AntiVirus.FileFolderHandler.entities.FileDB;
+import AntiVirus.entities.FileDB;
 
-public class VirusTotalAnalyzer implements HashAnalyzer{
+public class VirusTotalAnalyzer implements HashAnalyzer {
 
 	@Override
 	public boolean scanFile(FileDB file) {
 		return true;
 	}
-	
+
 }

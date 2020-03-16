@@ -1,8 +1,8 @@
 package AntiVirus.Analyzer;
 
-import AntiVirus.FileFolderHandler.entities.FileDB;
+import AntiVirus.entities.FileDB;
 
 public interface FileAnalyzer {
-	
+
 	public boolean scanFile(FileDB file);
 }
