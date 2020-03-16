@@ -29,11 +29,6 @@ public class FolderDB {
 	@GeneratedValue(strategy = GenerationType.SEQUENCE)
 	private Long Id;
 
-	/*
-	 * @OneToOne
-	 * 
-	 * @Getter private FolderDB father;
-	 */
 	@Getter
 	@Setter
 	@Column(name = "name")
@@ -43,15 +38,10 @@ public class FolderDB {
 	@Getter
 	private String path;
 
-	@Getter
-	@Transient
-	private File IOFolder;
 
-	public FolderDB(String name, String path, File iOFolder) {
-		// this.father = father;
+	public FolderDB(String name, String path) {
 		this.name = name;
 		this.path = path;
-		this.IOFolder = iOFolder;
 	}
 
 }

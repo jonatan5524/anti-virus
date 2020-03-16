@@ -2,6 +2,7 @@ package AntiVirus.Scanner.FileFolderHandler;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -23,6 +24,7 @@ import lombok.Setter;
 @NoArgsConstructor
 public class FileFolderScanner implements Runnable {
 
+	@Getter
 	@Autowired
 	private FileRepo fileRepo;
 	@Autowired
@@ -35,6 +37,7 @@ public class FileFolderScanner implements Runnable {
 
 	private void scanFolder(FolderDB dir) throws NoSuchAlgorithmException {
 		FolderDB folderTemp;
+		FileDB fileTemp;
 		MessageDigest md = MessageDigest.getInstance("MD5");
 		scanningMethod.init();
 
@@ -43,15 +46,15 @@ public class FileFolderScanner implements Runnable {
 		while (!scanningMethod.isEmpty()) {
 
 			dir = scanningMethod.remove();
-			File[] files = dir.getIOFolder().listFiles();
+			File[] files = new File(dir.getPath()).listFiles();
 			if (files != null) {
 				// go over all the files and sub directory in the current directory
 				for (File file : files) {
 					// if is a sub directory add to queue and to repository if needed
 					if (file.isDirectory()) {
 						if (!folderRepo.existsByPath(file.getPath())) {
-							System.out.println(file.getPath());
-							folderTemp = new FolderDB(file.getName(), file.getPath(), file);
+							// System.out.println(file.getPath());
+							folderTemp = new FolderDB(file.getName(), file.getPath());
 							folderRepo.save(folderTemp);
 						} else
 							folderTemp = folderRepo.findByPath(file.getPath());
@@ -59,8 +62,9 @@ public class FileFolderScanner implements Runnable {
 						// if is a file add to repository if needed
 					} else {
 						if (!fileRepo.existsByPath(file.getPath())) {
-							System.out.println(file.getPath());
-							fileRepo.save(new FileDB(checksum(file, md), file.getName(), file.getPath(), file));
+						//	 System.out.println(file.getPath());
+							fileTemp = new FileDB(getFileChecksum(md, file), file.getName(), file.getPath());
+							fileRepo.save(fileTemp);
 						}
 					}
 				}
@@ -70,18 +74,33 @@ public class FileFolderScanner implements Runnable {
 
 	}
 
-	private final String checksum(File input, MessageDigest md) {
-		try (InputStream in = new FileInputStream(input)) {
-			byte[] block = new byte[4096];
-			int length;
-			while ((length = in.read(block)) > 0) {
-				md.update(block, 0, length);
+	private String getFileChecksum(MessageDigest digest, File file) {
+		if(file.length() == 0)
+			return "";
+		try (FileInputStream fis = new FileInputStream(file)) {
+			byte[] byteArray = new byte[(int) file.length()];
+			int bytesCount = 0;
+
+			while ((bytesCount = fis.read(byteArray)) != -1) {
+				digest.update(byteArray, 0, bytesCount);
 			}
-			return md.digest().toString();
-		} catch (Exception e) {
+
+			fis.close();
+
+			byte[] bytes = digest.digest();
+
+			// This bytes[] has bytes in decimal format;
+			// Convert it to hexadecimal format
+			StringBuilder sb = new StringBuilder();
+			for (int i = 0; i < bytes.length; i++) {
+				sb.append(Integer.toString((bytes[i] & 0xff) + 0x100, 16).substring(1));
+			}
+			return sb.toString();
+		} catch (IOException e) {
 			e.printStackTrace();
 			return "";
 		}
+
 	}
 
 	public void debug() {
@@ -101,7 +120,7 @@ public class FileFolderScanner implements Runnable {
 		for (int i = 0; i < paths.length; i++) {
 			System.out.println(paths[i]);
 			hardDrives[i] = new FolderDB((paths[i].getName() == "") ? paths[i].getPath() : paths[i].getName(),
-					paths[i].getPath(), paths[i]);
+					paths[i].getPath());
 		}
 		return hardDrives;
 	}
@@ -115,14 +134,15 @@ public class FileFolderScanner implements Runnable {
 		FolderDB[] hardDrives = getAllHardDrives();
 		System.out.println("scanning method: " + scanningMethod.getClass());
 		for (FolderDB dir : hardDrives) {
-			System.out.println("starting scan in hardrive: " + dir.getPath());
-			try {
-				scanFolder(dir);
-			} catch (NoSuchAlgorithmException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			if (dir.getPath().contains("E")) {
+				System.out.println("starting scan in hardrive: " + dir.getPath());
+				try {
+					scanFolder(dir);
+				} catch (NoSuchAlgorithmException e) {
+					e.printStackTrace();
+				}
+				System.out.println("scan ended on hardrive: " + dir.getPath());
 			}
-			System.out.println("scan ended on hardrive: " + dir.getPath());
 		}
 		now = LocalDateTime.now();
 		String end = dtf.format(now);
@@ -130,6 +150,7 @@ public class FileFolderScanner implements Runnable {
 		System.out.println("Done:\n start: " + start + "\nend: " + end);
 		System.out.println("scanning method: " + scanningMethod.getClass());
 		debug();
+		scanning = false;
 	}
 
 }

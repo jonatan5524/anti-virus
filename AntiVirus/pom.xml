@@ -15,6 +15,21 @@
 
 	<dependencies>
 
+		<!-- https://mvnrepository.com/artifact/org.javalite/javalite-common -->
+		<dependency>
+			<groupId>org.javalite</groupId>
+			<artifactId>javalite-common</artifactId>
+			<version>2.3.1-j8</version>
+		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/com.google.code.gson/gson -->
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+			<version>2.8.5</version>
+		</dependency>
+
+
 		<!-- https://mvnrepository.com/artifact/org.springframework/spring-beans -->
 		<dependency>
 			<groupId>org.springframework</groupId>

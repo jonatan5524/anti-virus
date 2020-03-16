@@ -1,17 +1,13 @@
 package AntiVirus.entities;
 
-import java.io.File;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -33,11 +29,6 @@ public class FileDB {
 	@Column(name = "hash")
 	private String hash;
 
-	/*
-	 * @OneToOne
-	 * 
-	 * @Getter private FolderDB father;
-	 */
 	@Getter
 	@Setter
 	@Column(name = "name")
@@ -52,13 +43,9 @@ public class FileDB {
 	@Transient
 	private ResultScan resultScan;
 
-	@Getter
-	@Transient
-	private File IOFile;
-
-	public FileDB(String hash, String name, String path, File IOFile) {
+	public FileDB(String hash, String name, String path) {
 		this.hash = hash;
-		// this.father = father;
+		this.path = path;
 		this.name = name;
 	}
 
