@@ -13,6 +13,7 @@ import AntiVirus.Scanner.FileFolderHandler.FileFolderScanner;
 import AntiVirus.Scanner.FileFolderHandler.ScanningAlgorithem.ScanningAlgorithemTemplate;
 import AntiVirus.Scanner.FileFolderHandler.ScanningAlgorithem.ScanningBFS;
 import AntiVirus.Scanner.FileFolderHandler.ScanningAlgorithem.ScanningDFS;
+import AntiVirus.Analyzer.YaraAnalyzer.YaraAnalyzer;
 import AntiVirus.Scanner.ScannerScheduler;
 
 @Configuration
@@ -22,7 +23,7 @@ import AntiVirus.Scanner.ScannerScheduler;
 @EnableJpaRepositories("AntiVirus.repositories")
 @EnableScheduling
 public class AppConfig {
-
+	
 	// Default Method: BFS, can be changed using Set method
 	@Bean
 	public ScanningAlgorithemTemplate scanningAlgorithemTemplate() {

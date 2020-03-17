@@ -1,7 +1,8 @@
-package AntiVirus.Analyzer;
+package AntiVirus.Analyzer.HashAnalyzer;
 
 import org.javalite.http.Get;
 import org.javalite.http.Http;
+import org.springframework.stereotype.Service;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -20,12 +21,14 @@ public class VirusTotalAnalyzer implements HashAnalyzer {
 		if (!file.getHash().isBlank()) {
 			System.out.println(file);
 			Get response = Http.get(URI + file.getHash());
-			String responseText = response.text();
+			if (response.responseCode() == 200) {
+				String responseText = response.text();
 
-			JsonObject json = gson.fromJson(responseText, JsonObject.class);
-			if (json.get("response_code").getAsInt() == 1 && json.get("positives").getAsInt() > 0) {
-				System.out.println(responseText);
-				return true;
+				JsonObject json = gson.fromJson(responseText, JsonObject.class);
+				if (json.get("response_code").getAsInt() == 1 && json.get("positives").getAsInt() > 0) {
+					System.out.println(responseText);
+					return true;
+				}
 			}
 		}
 		return false;

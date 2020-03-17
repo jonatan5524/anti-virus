@@ -12,7 +12,9 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import AntiVirus.Analyzer.FileAnalyzer;
-import AntiVirus.Analyzer.VirusTotalAnalyzer;
+import AntiVirus.Analyzer.HashAnalyzer.VirusTotalAnalyzer;
+import AntiVirus.Analyzer.YaraAnalyzer.Yara;
+import AntiVirus.Analyzer.YaraAnalyzer.YaraAnalyzer;
 import AntiVirus.Scanner.FileFolderHandler.FileFolderScanner;
 import AntiVirus.Scanner.FileFolderHandler.ScanningAlgorithem.ScanningBFS;
 import AntiVirus.entities.FileDB;
@@ -31,7 +33,8 @@ public class ScannerScheduler {
 
 	public ScannerScheduler() {
 		analyzeType = new ArrayList<FileAnalyzer>();
-		analyzeType.add(new VirusTotalAnalyzer());
+	//	analyzeType.add(new VirusTotalAnalyzer());
+		analyzeType.add(new YaraAnalyzer());
 	}
 
 	@PostConstruct
@@ -72,14 +75,15 @@ public class ScannerScheduler {
 			temp = list.get(i);
 			totalRes = true;
 			temp.setResultScan(new ResultScan());
-			//System.out.println(temp);
+		//	System.out.println(temp);
 			for (FileAnalyzer type : analyzeType) {
 				result = type.scanFile(temp);
 				totalRes = totalRes && result;
 				temp.getResultScan().getResultAnalyzer().put(type, result);
 			}
 			temp.getResultScan().setResult(totalRes);
-		//	System.out.println(temp);
+			if(temp.getResultScan().isResult())
+				System.out.println(temp);
 		}
 	}
 
