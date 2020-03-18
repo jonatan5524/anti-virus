@@ -11,23 +11,38 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Scanner;
 
+import javax.annotation.PostConstruct;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Service;
+
 import AntiVirus.Analyzer.FileAnalyzer;
 import AntiVirus.Scanner.FileFolderHandler.ScanningAlgorithem.ScanningAlgorithemTemplate;
 import AntiVirus.Scanner.FileFolderHandler.ScanningAlgorithem.ScanningBFS;
 import AntiVirus.entities.FileDB;
 import lombok.ToString;
 
+@Service
 @ToString
 public class YaraAnalyzer implements FileAnalyzer {
 
 	private Collection<Yara> yaraRules;
 	private ScanningAlgorithemTemplate<File> algorithemTemplate;
-	private final static String scriptPath = System.getProperty("user.dir") + "\\src\\main\\resources\\yaraAnalyze.py";
+	@Value("${yara.scriptPath}")
+	private String scriptPath;
 
 	public YaraAnalyzer() {
 		yaraRules = new ArrayList<Yara>();
 		algorithemTemplate = new ScanningBFS<File>();
-		initYara();
+		
+	}
+	
+	@PostConstruct
+	private void initPath()
+	{
+		scriptPath = System.getProperty("user.dir") + scriptPath;
 	}
 
 	@Override
@@ -35,12 +50,12 @@ public class YaraAnalyzer implements FileAnalyzer {
 		System.out.println("analyzing file: " + file.getPath());
 		for (Yara yara : yaraRules) {
 			if (executeScript(yara, file.getPath())) {
-				System.out.println("found!!!! " + yara.name);
-				Scanner sc = new Scanner(System.in);
-				String name = sc.nextLine();
+				System.out.println("found!!!! " + yara.getName());
+				// Scanner sc = new Scanner(System.in);
+				// String name = sc.nextLine();
 				return true;
 			} else
-				System.out.println("tried: " + yara.name);
+				System.out.println("tried: " + yara.getName());
 		}
 
 		return false;
@@ -76,13 +91,16 @@ public class YaraAnalyzer implements FileAnalyzer {
 		return false;
 	}
 
-	private void initYara() {
+	@PostConstruct
+	private void initYaraRules() {
 		URL folderURL = YaraAnalyzer.class.getClassLoader().getResource("YaraRules");
 		System.out.println("path " + folderURL);
+		
+		// go over the YARARules Folder
 		File dir = new File(folderURL.getPath());
 		algorithemTemplate.init();
 		algorithemTemplate.add(dir);
-		String text;
+		
 		System.out.println("yara rules:");
 		while (!algorithemTemplate.isEmpty()) {
 			dir = algorithemTemplate.remove();
@@ -93,14 +111,20 @@ public class YaraAnalyzer implements FileAnalyzer {
 				else {
 					try {
 						System.out.println(file.getName());
-						text = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
-						yaraRules.add(new Yara(file.getName(), file.getPath(), text));
+						
+						addNewYara(file);
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
 				}
 			}
 		}
+	}
+	
+	private void addNewYara(File file) throws IOException
+	{
+		String text = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
+		yaraRules.add(new Yara(file.getName(), file.getPath(), text));
 	}
 
 }

@@ -9,7 +9,7 @@ import lombok.ToString;
 @AllArgsConstructor
 public class Yara {
 	
-	String name;
-	String path;
-	String rule;
+	private String name;
+	private String path;
+	private String rule;
 }

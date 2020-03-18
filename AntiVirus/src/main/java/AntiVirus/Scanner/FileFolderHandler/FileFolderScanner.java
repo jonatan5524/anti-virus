@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import AntiVirus.Scanner.FileFolderHandler.ScanningAlgorithem.ScanningAlgorithemTemplate;
+import AntiVirus.Utils.Utils;
 import AntiVirus.entities.FileDB;
 import AntiVirus.entities.FolderDB;
 import AntiVirus.repositories.FileRepo;
@@ -63,7 +64,7 @@ public class FileFolderScanner implements Runnable {
 					} else {
 						if (!fileRepo.existsByPath(file.getPath())) {
 						//	 System.out.println(file.getPath());
-							fileTemp = new FileDB(getFileChecksum(md, file), file.getName(), file.getPath());
+							fileTemp = new FileDB(Utils.getFileChecksum(md, file), file.getName(), file.getPath());
 							fileRepo.save(fileTemp);
 						}
 					}
@@ -73,42 +74,13 @@ public class FileFolderScanner implements Runnable {
 		}
 
 	}
-
-	private String getFileChecksum(MessageDigest digest, File file) {
-		if(file.length() == 0)
-			return "";
-		try (FileInputStream fis = new FileInputStream(file)) {
-			byte[] byteArray = new byte[(int) file.length()];
-			int bytesCount = 0;
-
-			while ((bytesCount = fis.read(byteArray)) != -1) {
-				digest.update(byteArray, 0, bytesCount);
-			}
-
-			fis.close();
-
-			byte[] bytes = digest.digest();
-
-			// This bytes[] has bytes in decimal format;
-			// Convert it to hexadecimal format
-			StringBuilder sb = new StringBuilder();
-			for (int i = 0; i < bytes.length; i++) {
-				sb.append(Integer.toString((bytes[i] & 0xff) + 0x100, 16).substring(1));
-			}
-			return sb.toString();
-		} catch (IOException e) {
-			e.printStackTrace();
-			return "";
-		}
-
-	}
-
+/*
 	public void debug() {
 		System.out.println("debug.....");
 		System.out.println("fileRepo count: " + fileRepo.count());
 		System.out.println("folderRepo count: " + folderRepo.count());
 	}
-
+*/
 	private FolderDB[] getAllHardDrives() {
 		File[] paths;
 
@@ -124,9 +96,9 @@ public class FileFolderScanner implements Runnable {
 		}
 		return hardDrives;
 	}
-
-	@Override
-	public void run() {
+	
+	private void startScanning()
+	{
 		scanning = true;
 		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm:ss");
 		LocalDateTime now = LocalDateTime.now();
@@ -134,7 +106,7 @@ public class FileFolderScanner implements Runnable {
 		FolderDB[] hardDrives = getAllHardDrives();
 		System.out.println("scanning method: " + scanningMethod.getClass());
 		for (FolderDB dir : hardDrives) {
-			if (dir.getPath().contains("E")) {
+		//	if (dir.getPath().contains("E")) {
 				System.out.println("starting scan in hardrive: " + dir.getPath());
 				try {
 					scanFolder(dir);
@@ -142,15 +114,20 @@ public class FileFolderScanner implements Runnable {
 					e.printStackTrace();
 				}
 				System.out.println("scan ended on hardrive: " + dir.getPath());
-			}
+			//}
 		}
 		now = LocalDateTime.now();
 		String end = dtf.format(now);
 
 		System.out.println("Done:\n start: " + start + "\nend: " + end);
 		System.out.println("scanning method: " + scanningMethod.getClass());
-		debug();
+		//debug();
 		scanning = false;
+	}
+
+	@Override
+	public void run() {
+		startScanning();
 	}
 
 }

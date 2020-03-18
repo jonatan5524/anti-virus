@@ -1,4 +1,4 @@
-package AntiVirus;
+package AntiVirus.Configuration;
 
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -13,6 +13,7 @@ import AntiVirus.Scanner.FileFolderHandler.FileFolderScanner;
 import AntiVirus.Scanner.FileFolderHandler.ScanningAlgorithem.ScanningAlgorithemTemplate;
 import AntiVirus.Scanner.FileFolderHandler.ScanningAlgorithem.ScanningBFS;
 import AntiVirus.Scanner.FileFolderHandler.ScanningAlgorithem.ScanningDFS;
+import AntiVirus.Analyzer.HashAnalyzer.VirusTotalAnalyzer;
 import AntiVirus.Analyzer.YaraAnalyzer.YaraAnalyzer;
 import AntiVirus.Scanner.ScannerScheduler;
 
@@ -29,7 +30,19 @@ public class AppConfig {
 	public ScanningAlgorithemTemplate scanningAlgorithemTemplate() {
 		return new ScanningBFS();
 	}
-
+	
+	@Bean
+	public YaraAnalyzer yaraAnalyzer()
+	{
+		return new YaraAnalyzer();
+	}
+	
+	@Bean
+	public VirusTotalAnalyzer virusTotalAnalyzer()
+	{
+		return new VirusTotalAnalyzer();
+	}
+	
 	@Bean
 	public ScannerScheduler scannerScheduler() {
 		return new ScannerScheduler();

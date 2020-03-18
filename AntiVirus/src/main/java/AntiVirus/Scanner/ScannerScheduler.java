@@ -7,21 +7,25 @@ import java.util.List;
 import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import AntiVirus.Analyzer.FileAnalyzer;
 import AntiVirus.Analyzer.HashAnalyzer.VirusTotalAnalyzer;
 import AntiVirus.Analyzer.YaraAnalyzer.Yara;
 import AntiVirus.Analyzer.YaraAnalyzer.YaraAnalyzer;
+import AntiVirus.Configuration.AppConfig;
+
 import AntiVirus.Scanner.FileFolderHandler.FileFolderScanner;
 import AntiVirus.Scanner.FileFolderHandler.ScanningAlgorithem.ScanningBFS;
 import AntiVirus.entities.FileDB;
 import AntiVirus.entities.FolderDB;
 import AntiVirus.entities.ResultScan;
 
-@Service
+@Component
 public class ScannerScheduler {
 
 	@Autowired
@@ -30,15 +34,18 @@ public class ScannerScheduler {
 	private FileFolderScanner scanner;
 
 	private Collection<FileAnalyzer> analyzeType;
+	@Autowired
+	private VirusTotalAnalyzer virusTotalAnalyzer;
+	@Autowired
+	private YaraAnalyzer yaraAnalyzer;
 
 	public ScannerScheduler() {
 		analyzeType = new ArrayList<FileAnalyzer>();
-	//	analyzeType.add(new VirusTotalAnalyzer());
-		analyzeType.add(new YaraAnalyzer());
 	}
 
 	@PostConstruct
 	private void onStartUp() {
+		analyzeType.add(virusTotalAnalyzer);
 		scan();
 	}
 
@@ -75,14 +82,14 @@ public class ScannerScheduler {
 			temp = list.get(i);
 			totalRes = true;
 			temp.setResultScan(new ResultScan());
-		//	System.out.println(temp);
+			//System.out.println(temp);
 			for (FileAnalyzer type : analyzeType) {
 				result = type.scanFile(temp);
 				totalRes = totalRes && result;
 				temp.getResultScan().getResultAnalyzer().put(type, result);
 			}
 			temp.getResultScan().setResult(totalRes);
-			if(temp.getResultScan().isResult())
+			if (temp.getResultScan().isResult())
 				System.out.println(temp);
 		}
 	}
