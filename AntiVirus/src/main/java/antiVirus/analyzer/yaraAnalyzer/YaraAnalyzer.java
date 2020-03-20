@@ -32,16 +32,25 @@ public class YaraAnalyzer implements FileAnalyzer {
 	private ScanningAlgorithemTemplate<File> algorithemTemplate;
 	@Value("${yara.scriptPath}")
 	private String scriptPath;
+	@Value("${yara.pythonCommand}")
+	private String pythonCommand;
 
 	public YaraAnalyzer() {
 		yaraRules = new ArrayList<Yara>();
 		algorithemTemplate = new ScanningBFS<File>();
-
+		
 	}
 
 	@PostConstruct
 	private void initPath() {
 		scriptPath = System.getProperty("user.dir") + scriptPath;
+		try {
+			Runtime rt = Runtime.getRuntime();
+			Process proc = rt.exec(pythonCommand);
+			} catch (IOException e) {
+				pythonCommand = "py";
+			}
+		
 	}
 
 	@Override
@@ -65,9 +74,11 @@ public class YaraAnalyzer implements FileAnalyzer {
 	}
 
 	private boolean executeScript(Yara yara, String path) {
+		
 		try {
+
 			Process p = Runtime.getRuntime()
-					.exec("python \"" + scriptPath + "\" \"" + yara.getPath() + "\" \"" + path + "\"");
+					.exec(pythonCommand+" \"" + scriptPath + "\" \"" + yara.getPath() + "\" \"" + path + "\"");
 
 			BufferedReader stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
 

@@ -8,11 +8,15 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import antiVirus.analyzer.FileAnalyzer;
 import antiVirus.entities.FileDB;
 import antiVirus.entities.FolderDB;
+import antiVirus.entities.ResultScan;
 import antiVirus.repositories.FileRepo;
 import antiVirus.repositories.FolderRepo;
 import antiVirus.scanner.fileFolderHandler.scanningAlgorithem.ScanningAlgorithemTemplate;
@@ -39,6 +43,7 @@ public class FileFolderScanner implements Runnable {
 	private void scanFolder(FolderDB dir) throws NoSuchAlgorithmException {
 		FolderDB folderTemp;
 		FileDB fileTemp;
+		ResultScan resultScanTemp;
 		MessageDigest md = MessageDigest.getInstance("MD5");
 		scanningMethod.init();
 
@@ -63,9 +68,17 @@ public class FileFolderScanner implements Runnable {
 						// if is a file add to repository if needed
 					} else {
 						if (!fileRepo.existsByPath(file.getPath())) {
-						//	 System.out.println(file.getPath());
+							System.out.println(file.getPath());
+							//resultScanTemp = new ResultScan();
+							//resultScanTemp.setResultAnalyzer(new HashMap<FileAnalyzer, Boolean>());
 							fileTemp = new FileDB(Utils.getFileChecksum(md, file), file.getName(), file.getPath());
+							fileTemp.getResultScan().setResultAnalyzer(new HashMap<FileAnalyzer, Boolean>());
+							//resultScanTemp.setFiledb(fileTemp);
+							//fileTemp.setResultScan(resultScanTemp);
+							
+							System.out.println(fileTemp);
 							fileRepo.save(fileTemp);
+							System.out.println(file.getPath());
 						}
 					}
 				}
@@ -74,13 +87,12 @@ public class FileFolderScanner implements Runnable {
 		}
 
 	}
-/*
-	public void debug() {
-		System.out.println("debug.....");
-		System.out.println("fileRepo count: " + fileRepo.count());
-		System.out.println("folderRepo count: " + folderRepo.count());
-	}
-*/
+
+	/*
+	 * public void debug() { System.out.println("debug.....");
+	 * System.out.println("fileRepo count: " + fileRepo.count());
+	 * System.out.println("folderRepo count: " + folderRepo.count()); }
+	 */
 	private FolderDB[] getAllHardDrives() {
 		File[] paths;
 
@@ -96,9 +108,8 @@ public class FileFolderScanner implements Runnable {
 		}
 		return hardDrives;
 	}
-	
-	private void startScanning()
-	{
+
+	private void startScanning() {
 		scanning = true;
 		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm:ss");
 		LocalDateTime now = LocalDateTime.now();
@@ -106,22 +117,22 @@ public class FileFolderScanner implements Runnable {
 		FolderDB[] hardDrives = getAllHardDrives();
 		System.out.println("scanning method: " + scanningMethod.getClass());
 		for (FolderDB dir : hardDrives) {
-			//if (dir.getPath().contains("E")) {
-				System.out.println("starting scan in hardrive: " + dir.getPath());
-				try {
-					scanFolder(dir);
-				} catch (NoSuchAlgorithmException e) {
-					e.printStackTrace();
-				}
-				System.out.println("scan ended on hardrive: " + dir.getPath());
-			//}
+			// if (dir.getPath().contains("E")) {
+			System.out.println("starting scan in hardrive: " + dir.getPath());
+			try {
+				scanFolder(dir);
+			} catch (NoSuchAlgorithmException e) {
+				e.printStackTrace();
+			}
+			System.out.println("scan ended on hardrive: " + dir.getPath());
+			// }
 		}
 		now = LocalDateTime.now();
 		String end = dtf.format(now);
 
 		System.out.println("Done:\n start: " + start + "\nend: " + end);
 		System.out.println("scanning method: " + scanningMethod.getClass());
-		//debug();
+		// debug();
 		scanning = false;
 	}
 

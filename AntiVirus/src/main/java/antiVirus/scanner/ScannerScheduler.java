@@ -2,6 +2,9 @@ package antiVirus.scanner;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
@@ -74,21 +77,22 @@ public class ScannerScheduler {
 		list = waitForList(list, 0);
 
 		for (int i = 0; scanner.isScanning() || i < list.size(); i++) {
-			
+
 			list = waitForList(list, i);
 
 			temp = list.get(i);
+
 			totalRes = true;
-			temp.setResultScan(new ResultScan());
-			// System.out.println(temp);
+
+			System.out.println(temp);
 			for (FileAnalyzer type : analyzeType) {
 				result = type.scanFile(temp);
 				totalRes = totalRes && result;
 				temp.getResultScan().getResultAnalyzer().put(type, result);
 			}
 			temp.getResultScan().setResult(totalRes);
-			if (temp.getResultScan().isResult())
-			{
+			System.out.println(temp);
+			if (temp.getResultScan().isResult()) {
 				System.out.println(temp);
 			}
 		}
@@ -100,10 +104,6 @@ public class ScannerScheduler {
 			list = scanner.getFileRepo().findAll();
 		}
 		return list;
-	}
-
-	private void forceStop() {
-
 	}
 
 }
