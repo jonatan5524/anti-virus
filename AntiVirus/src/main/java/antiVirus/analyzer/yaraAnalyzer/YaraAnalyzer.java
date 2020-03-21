@@ -20,6 +20,8 @@ import org.springframework.stereotype.Service;
 
 import antiVirus.analyzer.FileAnalyzer;
 import antiVirus.entities.FileDB;
+import antiVirus.exceptions.AntiVirusScanningException;
+import antiVirus.exceptions.AntiVirusYaraException;
 import antiVirus.scanner.fileFolderHandler.scanningAlgorithem.ScanningAlgorithemTemplate;
 import antiVirus.scanner.fileFolderHandler.scanningAlgorithem.ScanningBFS;
 import lombok.ToString;
@@ -38,7 +40,7 @@ public class YaraAnalyzer implements FileAnalyzer {
 	public YaraAnalyzer() {
 		yaraRules = new ArrayList<Yara>();
 		algorithemTemplate = new ScanningBFS<File>();
-		
+
 	}
 
 	@PostConstruct
@@ -47,14 +49,14 @@ public class YaraAnalyzer implements FileAnalyzer {
 		try {
 			Runtime rt = Runtime.getRuntime();
 			Process proc = rt.exec(pythonCommand);
-			} catch (IOException e) {
-				pythonCommand = "py";
-			}
-		
+		} catch (IOException e) {
+			pythonCommand = "py";
+		}
+
 	}
 
 	@Override
-	public boolean scanFile(FileDB file) {
+	public boolean scanFile(FileDB file) throws AntiVirusYaraException {
 		System.out.println("analyzing file: " + file.getPath());
 		int count = 0;
 		for (Yara yara : yaraRules) {
@@ -63,8 +65,8 @@ public class YaraAnalyzer implements FileAnalyzer {
 				count++;
 			}
 			if (count >= 3) {
-				// Scanner sc = new Scanner(System.in);
-				// String name = sc.nextLine();
+				 Scanner sc = new Scanner(System.in);
+				 String name = sc.nextLine();
 				return true;
 			}
 
@@ -73,36 +75,44 @@ public class YaraAnalyzer implements FileAnalyzer {
 		return false;
 	}
 
-	private boolean executeScript(Yara yara, String path) {
-		
+	private boolean executeScript(Yara yara, String path) throws AntiVirusYaraException {
+
+		Process p;
 		try {
+			p = Runtime.getRuntime()
+					.exec(pythonCommand + " \"" + scriptPath + "\" \"" + yara.getPath() + "\" \"" + path + "\"");
+		} catch (IOException e) {
+			throw new AntiVirusYaraException("error excuting python script one of these parameters incorrect: "
+					+ pythonCommand + " \"" + scriptPath + "\" \"" + yara.getPath() + "\" \"" + path + "\"", e);
+		}
 
-			Process p = Runtime.getRuntime()
-					.exec(pythonCommand+" \"" + scriptPath + "\" \"" + yara.getPath() + "\" \"" + path + "\"");
+		BufferedReader stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
 
-			BufferedReader stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
+		BufferedReader stdError = new BufferedReader(new InputStreamReader(p.getErrorStream()));
 
-			BufferedReader stdError = new BufferedReader(new InputStreamReader(p.getErrorStream()));
-
-			String output, outputTot = "";
+		String output, outputTot = "";
+		String error, errorTot = "";
+		try {
 			while ((output = stdInput.readLine()) != null) {
 				outputTot += output;
 			}
-			String error, errorTot = "";
+
 			while ((error = stdError.readLine()) != null) {
 				errorTot += error;
 			}
-
-			if (!errorTot.isBlank() && !errorTot.isEmpty() && errorTot.contains("YaraSyntaxError ")) {
-				System.out.println(errorTot);
-			}
-
-			if (!outputTot.isBlank() && !outputTot.isEmpty()) {
-				return true;
-			}
 		} catch (IOException e) {
-			e.printStackTrace();
+			// TODO Auto-generated catch block
+			throw new AntiVirusYaraException("exception reading from executable script", e);
 		}
+
+		if (!errorTot.isBlank() && !errorTot.isEmpty() && errorTot.contains("YaraSyntaxError ")) {
+			System.out.println(errorTot);
+		}
+
+		if (!outputTot.isBlank() && !outputTot.isEmpty()) {
+			return true;
+		}
+
 		return false;
 	}
 
@@ -128,7 +138,7 @@ public class YaraAnalyzer implements FileAnalyzer {
 						System.out.println(file.getName());
 
 						addNewYara(file);
-					} catch (IOException e) {
+					} catch (AntiVirusScanningException e) {
 						e.printStackTrace();
 					}
 				}
@@ -136,9 +146,14 @@ public class YaraAnalyzer implements FileAnalyzer {
 		}
 	}
 
-	private void addNewYara(File file) throws IOException {
-		String text = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
-		yaraRules.add(new Yara(file.getName(), file.getPath(), text));
+	private void addNewYara(File file) throws AntiVirusScanningException {
+
+		try {
+			String text = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
+			yaraRules.add(new Yara(file.getName(), file.getPath(), text));
+		} catch (IOException e) {
+			throw new AntiVirusScanningException("execption reading yara rule: " + file.getName(), e);
+		}
 	}
 
 }

@@ -11,6 +11,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -19,6 +20,7 @@ import antiVirus.analyzer.FileAnalyzer;
 import antiVirus.entities.FileDB;
 import antiVirus.entities.FolderDB;
 import antiVirus.entities.ResultScan;
+import antiVirus.exceptions.AntiVirusException;
 import antiVirus.repositories.FileRepo;
 import antiVirus.repositories.FolderRepo;
 import antiVirus.scanner.fileFolderHandler.scanningAlgorithem.ScanningAlgorithemTemplate;
@@ -41,12 +43,19 @@ public class FileFolderScanner implements Runnable {
 	private ScanningAlgorithemTemplate<FolderDB> scanningMethod;
 	@Getter
 	private boolean scanning = false;
+	@Value("${file.hashAlgorithm}")
+	private String hashAlgorithm;
 
-	private void scanFolder(FolderDB dir) throws NoSuchAlgorithmException, JsonProcessingException {
+	private void scanFolder(FolderDB dir) throws AntiVirusException {
 		FolderDB folderTemp;
 		FileDB fileTemp;
 		ResultScan resultScanTemp;
-		MessageDigest md = MessageDigest.getInstance("MD5");
+		MessageDigest md;
+		try {
+			md = MessageDigest.getInstance(hashAlgorithm);
+		} catch (NoSuchAlgorithmException e) {
+			throw new AntiVirusException("Invalid Hashing Algorithem: "+hashAlgorithm,e);
+		}
 		scanningMethod.init();
 
 		scanningMethod.add(dir);
@@ -122,15 +131,15 @@ public class FileFolderScanner implements Runnable {
 		FolderDB[] hardDrives = getAllHardDrives();
 		System.out.println("scanning method: " + scanningMethod.getClass());
 		for (FolderDB dir : hardDrives) {
-			// if (dir.getPath().contains("E")) {
+			 if (dir.getPath().contains("E")) {
 			System.out.println("starting scan in hardrive: " + dir.getPath());
 			try {
 				scanFolder(dir);
-			} catch (NoSuchAlgorithmException | JsonProcessingException e) {
+			} catch (AntiVirusException e) {
 				e.printStackTrace();
 			}
 			System.out.println("scan ended on hardrive: " + dir.getPath());
-			// }
+			 }
 		}
 		now = LocalDateTime.now();
 		String end = dtf.format(now);

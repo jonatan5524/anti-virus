@@ -28,7 +28,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import antiVirus.analyzer.FileAnalyzer;
-
+import antiVirus.exceptions.AntiVirusException;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -60,15 +60,25 @@ public class ResultScan {
 	@Transient
 	private Map<FileAnalyzer, Boolean> resultAnalyzer;
 
-	public void serializeResultAnalyzer() throws JsonProcessingException {
-	    this.resultAnalyzerJSON = new ObjectMapper().writeValueAsString(resultAnalyzer);
+	public void serializeResultAnalyzer() throws AntiVirusException  {
+	    try {
+			this.resultAnalyzerJSON = new ObjectMapper().writeValueAsString(resultAnalyzer);
+		} catch (JsonProcessingException e) {
+			throw new AntiVirusException("exception in serializing resultAnalyzer: "+resultAnalyzer,e);
+		}
 	}
 	
 	@SuppressWarnings("unchecked")
-	public void deserializeResultAnalyzer() throws IOException {
+	public void deserializeResultAnalyzer() throws AntiVirusException  {
+		try {
 		if(resultAnalyzer == null)
 			this.resultAnalyzer = new HashMap<FileAnalyzer, Boolean>();
 	    this.resultAnalyzer = new ObjectMapper().readValue(resultAnalyzerJSON, HashMap.class);
+		}
+		catch(IOException e)
+		{
+			throw new AntiVirusException("exception in deserializing resultAnalyzer: "+resultAnalyzerJSON,e);
+		}
 	}
 	
 }

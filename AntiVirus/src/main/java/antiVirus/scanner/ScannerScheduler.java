@@ -24,6 +24,7 @@ import antiVirus.analyzer.yaraAnalyzer.YaraAnalyzer;
 import antiVirus.entities.FileDB;
 import antiVirus.entities.FolderDB;
 import antiVirus.entities.ResultScan;
+import antiVirus.exceptions.AntiVirusException;
 import antiVirus.scanner.fileFolderHandler.FileFolderScanner;
 import antiVirus.scanner.fileFolderHandler.scanningAlgorithem.ScanningBFS;
 
@@ -63,14 +64,14 @@ public class ScannerScheduler {
 
 			try {
 				analyzeFiles();
-			} catch (InterruptedException | IOException e) {
+			} catch (AntiVirusException | InterruptedException e) {
 				e.printStackTrace();
 			}
 		}
 
 	}
 
-	private void analyzeFiles() throws InterruptedException, IOException {
+	private void analyzeFiles() throws AntiVirusException, InterruptedException   {
 		boolean result, totalRes = true;
 		List<FileDB> list = scanner.getFileRepo().findAll();
 		FileDB temp;
@@ -82,6 +83,7 @@ public class ScannerScheduler {
 			list = waitForList(list, i);
 
 			temp = list.get(i);
+			
 			temp.getResultScan().deserializeResultAnalyzer();
 			totalRes = true;
 
