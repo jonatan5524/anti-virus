@@ -8,6 +8,7 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Scanner;
 
@@ -36,6 +37,8 @@ public class YaraAnalyzer implements FileAnalyzer {
 	private String scriptPath;
 	@Value("${yara.pythonCommand}")
 	private String pythonCommand;
+	@Value("${yara.blacklist}")
+	private String[] yaraBlacklist;
 
 	public YaraAnalyzer() {
 		yaraRules = new ArrayList<Yara>();
@@ -63,10 +66,14 @@ public class YaraAnalyzer implements FileAnalyzer {
 			if (executeScript(yara, file.getPath())) {
 				System.out.println("yara found: " + yara.getName());
 				count++;
+				
+				if (Arrays.stream(yaraBlacklist).parallel().anyMatch(yara.getPath()::contains)) {
+					return true;
+				}
 			}
 			if (count >= 3) {
-				 Scanner sc = new Scanner(System.in);
-				 String name = sc.nextLine();
+				// Scanner sc = new Scanner(System.in);
+				// String name = sc.nextLine();
 				return true;
 			}
 

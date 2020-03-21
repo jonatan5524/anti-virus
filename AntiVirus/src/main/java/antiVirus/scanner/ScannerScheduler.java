@@ -97,7 +97,8 @@ public class ScannerScheduler {
 			temp.getResultScan().serializeResultAnalyzer();
 			
 			scanner.getFileRepo().save(temp);
-			System.out.println(temp);
+			if(totalRes)
+				System.out.println(temp);
 
 			
 		}
