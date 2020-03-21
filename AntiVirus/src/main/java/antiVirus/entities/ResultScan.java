@@ -1,5 +1,6 @@
 package antiVirus.entities;
 
+import java.io.IOException;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -19,6 +20,7 @@ import javax.persistence.Lob;
 import javax.persistence.MapsId;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -27,7 +29,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import antiVirus.analyzer.FileAnalyzer;
 
-import antiVirus.utils.HashMapConverter;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -35,7 +36,7 @@ import lombok.ToString;
 
 @Entity
 @Table(name = "result_scan")
-@ToString(exclude = { "filedb", "resultAnalyzerJSON" })
+@ToString(exclude = { "filedb" })
 @NoArgsConstructor
 public class ResultScan {
 
@@ -56,7 +57,18 @@ public class ResultScan {
 
 	@Getter
 	@Setter
-	@Convert(converter = HashMapConverter.class)
+	@Transient
 	private Map<FileAnalyzer, Boolean> resultAnalyzer;
 
+	public void serializeResultAnalyzer() throws JsonProcessingException {
+	    this.resultAnalyzerJSON = new ObjectMapper().writeValueAsString(resultAnalyzer);
+	}
+	
+	@SuppressWarnings("unchecked")
+	public void deserializeResultAnalyzer() throws IOException {
+		if(resultAnalyzer == null)
+			this.resultAnalyzer = new HashMap<FileAnalyzer, Boolean>();
+	    this.resultAnalyzer = new ObjectMapper().readValue(resultAnalyzerJSON, HashMap.class);
+	}
+	
 }

@@ -13,6 +13,8 @@ import java.util.HashMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+
 import antiVirus.analyzer.FileAnalyzer;
 import antiVirus.entities.FileDB;
 import antiVirus.entities.FolderDB;
@@ -40,7 +42,7 @@ public class FileFolderScanner implements Runnable {
 	@Getter
 	private boolean scanning = false;
 
-	private void scanFolder(FolderDB dir) throws NoSuchAlgorithmException {
+	private void scanFolder(FolderDB dir) throws NoSuchAlgorithmException, JsonProcessingException {
 		FolderDB folderTemp;
 		FileDB fileTemp;
 		ResultScan resultScanTemp;
@@ -68,17 +70,20 @@ public class FileFolderScanner implements Runnable {
 						// if is a file add to repository if needed
 					} else {
 						if (!fileRepo.existsByPath(file.getPath())) {
-							System.out.println(file.getPath());
-							//resultScanTemp = new ResultScan();
-							//resultScanTemp.setResultAnalyzer(new HashMap<FileAnalyzer, Boolean>());
-							fileTemp = new FileDB(Utils.getFileChecksum(md, file), file.getName(), file.getPath());
-							fileTemp.getResultScan().setResultAnalyzer(new HashMap<FileAnalyzer, Boolean>());
-							//resultScanTemp.setFiledb(fileTemp);
-							//fileTemp.setResultScan(resultScanTemp);
+						//	System.out.println(file.getPath());
+							resultScanTemp = new ResultScan();
+							resultScanTemp.setResultAnalyzer(new HashMap<FileAnalyzer, Boolean>());
+
+							resultScanTemp.serializeResultAnalyzer();
 							
-							System.out.println(fileTemp);
+							fileTemp = new FileDB(Utils.getFileChecksum(md, file), file.getName(), file.getPath());
+							resultScanTemp.setFiledb(fileTemp);
+
+
+							fileTemp.setResultScan(resultScanTemp);
+
 							fileRepo.save(fileTemp);
-							System.out.println(file.getPath());
+						//	System.out.println(fileTemp);
 						}
 					}
 				}
@@ -121,7 +126,7 @@ public class FileFolderScanner implements Runnable {
 			System.out.println("starting scan in hardrive: " + dir.getPath());
 			try {
 				scanFolder(dir);
-			} catch (NoSuchAlgorithmException e) {
+			} catch (NoSuchAlgorithmException | JsonProcessingException e) {
 				e.printStackTrace();
 			}
 			System.out.println("scan ended on hardrive: " + dir.getPath());

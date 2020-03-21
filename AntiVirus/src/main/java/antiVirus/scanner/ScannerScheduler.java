@@ -1,5 +1,6 @@
 package antiVirus.scanner;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
@@ -62,14 +63,14 @@ public class ScannerScheduler {
 
 			try {
 				analyzeFiles();
-			} catch (InterruptedException e) {
+			} catch (InterruptedException | IOException e) {
 				e.printStackTrace();
 			}
 		}
 
 	}
 
-	private void analyzeFiles() throws InterruptedException {
+	private void analyzeFiles() throws InterruptedException, IOException {
 		boolean result, totalRes = true;
 		List<FileDB> list = scanner.getFileRepo().findAll();
 		FileDB temp;
@@ -81,20 +82,22 @@ public class ScannerScheduler {
 			list = waitForList(list, i);
 
 			temp = list.get(i);
-
+			temp.getResultScan().deserializeResultAnalyzer();
 			totalRes = true;
 
-			System.out.println(temp);
+			//System.out.println(temp);
 			for (FileAnalyzer type : analyzeType) {
 				result = type.scanFile(temp);
 				totalRes = totalRes && result;
 				temp.getResultScan().getResultAnalyzer().put(type, result);
 			}
 			temp.getResultScan().setResult(totalRes);
+			temp.getResultScan().serializeResultAnalyzer();
+			
+			scanner.getFileRepo().save(temp);
 			System.out.println(temp);
-			if (temp.getResultScan().isResult()) {
-				System.out.println(temp);
-			}
+
+			
 		}
 	}
 

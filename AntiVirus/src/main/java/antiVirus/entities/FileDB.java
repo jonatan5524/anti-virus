@@ -41,6 +41,7 @@ public class FileDB {
 	@Column(name = "path", unique = true)
 	@Getter
 	private String path;
+	
 
 	@Getter
 	@Setter
@@ -51,7 +52,7 @@ public class FileDB {
 		this.hash = hash;
 		this.path = path;
 		this.name = name;
-		this.resultScan = new ResultScan();
+
 	}
 
 }
