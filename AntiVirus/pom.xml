@@ -5,6 +5,7 @@
 	<groupId>jonatan</groupId>
 	<artifactId>AntiVirus</artifactId>
 	<version>1.0.0</version>
+	<packaging>jar</packaging>
 
 	<parent>
 		<groupId>org.springframework.boot</groupId>
@@ -14,6 +15,8 @@
 	</parent>
 
 	<dependencies>
+
+
 		<dependency>
 			<groupId>com.vladmihalcea</groupId>
 			<artifactId>hibernate-types-52</artifactId>

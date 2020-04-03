@@ -131,7 +131,7 @@ public class FileFolderScanner implements Runnable {
 		FolderDB[] hardDrives = getAllHardDrives();
 		System.out.println("scanning method: " + scanningMethod.getClass());
 		for (FolderDB dir : hardDrives) {
-			 if (dir.getPath().contains("E")) {
+		//	 if (dir.getPath().contains("E")) {
 			System.out.println("starting scan in hardrive: " + dir.getPath());
 			try {
 				scanFolder(dir);
@@ -139,7 +139,7 @@ public class FileFolderScanner implements Runnable {
 				e.printStackTrace();
 			}
 			System.out.println("scan ended on hardrive: " + dir.getPath());
-			 }
+			// }
 		}
 		now = LocalDateTime.now();
 		String end = dtf.format(now);

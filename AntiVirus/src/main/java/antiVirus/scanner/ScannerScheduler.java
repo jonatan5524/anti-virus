@@ -42,37 +42,43 @@ public class ScannerScheduler {
 	@Autowired
 	private YaraAnalyzer yaraAnalyzer;
 
+	private boolean scan;
+
 	@Value("${scannerScheduler.waitForList}")
 	private int waitForList;
 
 	public ScannerScheduler() {
 		analyzeType = new ArrayList<FileAnalyzer>();
+		scan = true;
 	}
 
 	@PostConstruct
 	private void onStartUp() {
 		// analyzeType.add(virusTotalAnalyzer);
 		analyzeType.add(yaraAnalyzer);
+		analyzeType.add(virusTotalAnalyzer);
 		scan();
 	}
 
 	@Scheduled(cron = "${scanner.scheduler.cron}")
 	private void scan() {
-		if (!scanner.isScanning()) {
-			scanner.setScanningMethod(new ScanningBFS<FolderDB>());
-			taskExecutor.execute(scanner);
+		if (scan) {
+			if (!scanner.isScanning()) {
+				scanner.setScanningMethod(new ScanningBFS<FolderDB>());
+				taskExecutor.execute(scanner);
 
-			try {
-				analyzeFiles();
-			} catch (AntiVirusException | InterruptedException e) {
-				e.printStackTrace();
+				try {
+					analyzeFiles();
+				} catch (AntiVirusException | InterruptedException e) {
+					e.printStackTrace();
+				}
 			}
 		}
 
 	}
 
-	private void analyzeFiles() throws AntiVirusException, InterruptedException   {
-		boolean result, totalRes = true;
+	private void analyzeFiles() throws AntiVirusException, InterruptedException {
+		boolean result;
 		List<FileDB> list = scanner.getFileRepo().findAll();
 		FileDB temp;
 
@@ -83,24 +89,24 @@ public class ScannerScheduler {
 			list = waitForList(list, i);
 
 			temp = list.get(i);
-			
-			temp.getResultScan().deserializeResultAnalyzer();
-			totalRes = true;
 
-			//System.out.println(temp);
-			for (FileAnalyzer type : analyzeType) {
-				result = type.scanFile(temp);
-				totalRes = totalRes && result;
-				temp.getResultScan().getResultAnalyzer().put(type, result);
+			temp.getResultScan().deserializeResultAnalyzer();
+
+			// System.out.println(temp);
+			result = yaraAnalyzer.scanFile(temp);
+			temp.getResultScan().getResultAnalyzer().put(yaraAnalyzer, result);
+			if(result)
+			{
+				result = virusTotalAnalyzer.scanFile(temp);
+				temp.getResultScan().getResultAnalyzer().put(virusTotalAnalyzer, result);
 			}
-			temp.getResultScan().setResult(totalRes);
+			temp.getResultScan().setResult(result);
 			temp.getResultScan().serializeResultAnalyzer();
-			
+
 			scanner.getFileRepo().save(temp);
-			if(totalRes)
+			if (result)
 				System.out.println(temp);
 
-			
 		}
 	}
 
@@ -111,5 +117,14 @@ public class ScannerScheduler {
 		}
 		return list;
 	}
+	
+	public void stopSchedule()
+	{
+		scan = false;
+	}
 
+	public void resumeSchedule()
+	{
+		scan = true;
+	}
 }

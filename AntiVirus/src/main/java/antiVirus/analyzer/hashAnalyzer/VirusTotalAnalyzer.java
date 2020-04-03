@@ -45,9 +45,8 @@ public class VirusTotalAnalyzer implements HashAnalyzer {
 				String responseText = response.text();
 
 				VTHash json = gson.fromJson(responseText, VTHash.class);
-				System.out.println(json);
 				if (json.responseCode == 1 && json.positives > 0) {
-					System.out.println(responseText);
+					System.out.println("found VirusTotal: "+file.getPath());
 					return true;
 				}
 			}
