@@ -7,6 +7,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Scanner;
 
 import javax.annotation.PostConstruct;
 
@@ -24,7 +25,9 @@ import antiVirus.analyzer.yaraAnalyzer.YaraAnalyzer;
 import antiVirus.entities.FileDB;
 import antiVirus.entities.FolderDB;
 import antiVirus.entities.ResultScan;
+import antiVirus.exceptions.AntiVirusAnalyzeException;
 import antiVirus.exceptions.AntiVirusException;
+import antiVirus.exceptions.AntiVirusScanningException;
 import antiVirus.scanner.fileFolderHandler.FileFolderScanner;
 import antiVirus.scanner.fileFolderHandler.scanningAlgorithem.ScanningBFS;
 
@@ -77,36 +80,41 @@ public class ScannerScheduler {
 
 	}
 
-	private void analyzeFiles() throws AntiVirusException, InterruptedException {
+	private void analyzeFiles() throws InterruptedException, AntiVirusAnalyzeException {
+		FileDB temp = null;
 		boolean result;
-		List<FileDB> list = scanner.getFileRepo().findAll();
-		FileDB temp;
+		try {
+			List<FileDB> list = scanner.getFileRepo().findAll();
 
-		list = waitForList(list, 0);
+			list = waitForList(list, 0);
 
-		for (int i = 0; scanner.isScanning() || i < list.size(); i++) {
+			for (int i = 0; scanner.isScanning() || i < list.size(); i++) {
 
-			list = waitForList(list, i);
+				list = waitForList(list, i);
 
-			temp = list.get(i);
+				temp = list.get(i);
 
-			temp.getResultScan().deserializeResultAnalyzer();
-
-			// System.out.println(temp);
-			result = yaraAnalyzer.scanFile(temp);
-			temp.getResultScan().getResultAnalyzer().put(yaraAnalyzer, result);
-			if(result)
-			{
+				temp.getResultScan().deserializeResultAnalyzer();
 				result = virusTotalAnalyzer.scanFile(temp);
 				temp.getResultScan().getResultAnalyzer().put(virusTotalAnalyzer, result);
+				
+				if (result) {
+					result = yaraAnalyzer.scanFile(temp);
+					temp.getResultScan().getResultAnalyzer().put(yaraAnalyzer, result);
+				}
+				temp.getResultScan().setResult(result);
+				temp.getResultScan().serializeResultAnalyzer();
+
+				scanner.getFileRepo().save(temp);
+				if (result) {
+					System.out.println("virus detected! " + temp);
+					Scanner scanner = new Scanner(System.in);
+					scanner.nextLine();
+				}
 			}
-			temp.getResultScan().setResult(result);
-			temp.getResultScan().serializeResultAnalyzer();
 
-			scanner.getFileRepo().save(temp);
-			if (result)
-				System.out.println(temp);
-
+		} catch (AntiVirusException e) {
+			throw new AntiVirusAnalyzeException("exception during analyze file: "+temp,e);
 		}
 	}
 
@@ -117,14 +125,12 @@ public class ScannerScheduler {
 		}
 		return list;
 	}
-	
-	public void stopSchedule()
-	{
+
+	public void stopSchedule() {
 		scan = false;
 	}
 
-	public void resumeSchedule()
-	{
+	public void resumeSchedule() {
 		scan = true;
 	}
 }

@@ -18,10 +18,13 @@ import antiVirus.scanner.ScannerScheduler;
 @EnableJpaRepositories
 @EnableScheduling
 public class AntiVirusApplication {
-
+	
+	public static String[] arguments;
+	
 	public static void main(String[] args) {
+		arguments = args;
 		ApplicationContext ctx = SpringApplication.run(AntiVirusApplication.class, args);
 		ScannerScheduler scheduler = ctx.getBean(ScannerScheduler.class);
 
-	}
+	}	
 }

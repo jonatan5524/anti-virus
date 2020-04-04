@@ -84,7 +84,6 @@ public class YaraAnalyzer implements FileAnalyzer {
 		System.out.println("analyzing file - yara: " + file.getPath());
 		int count = 0;
 		for (Yara yara : yaraRules) {
-			//System.out.print(yara.getName());
 			if (executeScript(yara, file.getPath())) {
 				count++;
 			//	System.out.print(yara.getName()+", ");
@@ -92,7 +91,10 @@ public class YaraAnalyzer implements FileAnalyzer {
 					System.out.println("yara found from blacklist: " + yara.getName());
 					return true;
 				} else
+				{
 					System.out.println("yara found: " + yara.getName());
+			
+				}
 			}
 			if (count >= 3) {
 				System.out.println("third yara found");

@@ -1,11 +1,13 @@
 package antiVirus.configuration;
 
+import org.springframework.boot.ApplicationArguments;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
+import antiVirus.AntiVirusApplication;
 import antiVirus.analyzer.hashAnalyzer.VirusTotalAnalyzer;
 import antiVirus.analyzer.yaraAnalyzer.YaraAnalyzer;
 import antiVirus.scanner.ScannerScheduler;
@@ -15,25 +17,23 @@ import antiVirus.scanner.fileFolderHandler.scanningAlgorithem.ScanningBFS;
 
 @Configuration
 public class AppConfig {
-	
+
 	// Default Method: BFS, can be changed using Set method
 	@Bean
 	public ScanningAlgorithemTemplate scanningAlgorithemTemplate() {
 		return new ScanningBFS();
 	}
-	
+
 	@Bean
-	public YaraAnalyzer yaraAnalyzer()
-	{
+	public YaraAnalyzer yaraAnalyzer() {
 		return new YaraAnalyzer();
 	}
-	
+
 	@Bean
-	public VirusTotalAnalyzer virusTotalAnalyzer()
-	{
+	public VirusTotalAnalyzer virusTotalAnalyzer() {
 		return new VirusTotalAnalyzer();
 	}
-	
+
 	@Bean
 	public ScannerScheduler scannerScheduler() {
 		return new ScannerScheduler();
@@ -41,7 +41,18 @@ public class AppConfig {
 
 	@Bean
 	public FileFolderScanner fileFolderScanner() {
-		return new FileFolderScanner();
+		String temp = "";
+		if (AntiVirusApplication.arguments.length > 0) {
+			for (int i = 0; i < AntiVirusApplication.arguments.length; i++) {
+				if (AntiVirusApplication.arguments[i].equals("-d"))
+				{
+					temp = AntiVirusApplication.arguments[i + 1];
+					break;
+				}
+
+			}
+		}
+		return new FileFolderScanner(temp);
 	}
 
 	@Bean

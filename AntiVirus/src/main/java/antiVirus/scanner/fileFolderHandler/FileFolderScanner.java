@@ -46,6 +46,13 @@ public class FileFolderScanner implements Runnable {
 	@Value("${file.hashAlgorithm}")
 	private String hashAlgorithm;
 
+	private String initScanningDir;
+
+	public FileFolderScanner(String initScanningDir) {
+		this.initScanningDir = initScanningDir;
+		System.out.println("initScanningDir: "+initScanningDir);
+	}
+
 	private void scanFolder(FolderDB dir) throws AntiVirusException {
 		FolderDB folderTemp;
 		FileDB fileTemp;
@@ -54,7 +61,7 @@ public class FileFolderScanner implements Runnable {
 		try {
 			md = MessageDigest.getInstance(hashAlgorithm);
 		} catch (NoSuchAlgorithmException e) {
-			throw new AntiVirusException("Invalid Hashing Algorithem: "+hashAlgorithm,e);
+			throw new AntiVirusException("Invalid Hashing Algorithem: " + hashAlgorithm, e);
 		}
 		scanningMethod.init();
 
@@ -69,30 +76,32 @@ public class FileFolderScanner implements Runnable {
 				for (File file : files) {
 					// if is a sub directory add to queue and to repository if needed
 					if (file.isDirectory()) {
-						if (!folderRepo.existsByPath(file.getPath())) {
-							// System.out.println(file.getPath());
-							folderTemp = new FolderDB(file.getName(), file.getPath());
-							folderRepo.save(folderTemp);
-						} else
-							folderTemp = folderRepo.findByPath(file.getPath());
-						scanningMethod.add(folderTemp);
+						if ((Utils.isUnix() && file.getPath() != "\\proc" && file.getPath() != "\\sys")
+								|| !Utils.isUnix()) {
+							if (!folderRepo.existsByPath(file.getPath())) {
+								// System.out.println(file.getPath());
+								folderTemp = new FolderDB(file.getName(), file.getPath());
+								folderRepo.save(folderTemp);
+							} else
+								folderTemp = folderRepo.findByPath(file.getPath());
+							scanningMethod.add(folderTemp);
+						}
 						// if is a file add to repository if needed
 					} else {
 						if (!fileRepo.existsByPath(file.getPath())) {
-						//	System.out.println(file.getPath());
+							// System.out.println(file.getPath());
 							resultScanTemp = new ResultScan();
 							resultScanTemp.setResultAnalyzer(new HashMap<FileAnalyzer, Boolean>());
 
 							resultScanTemp.serializeResultAnalyzer();
-							
+
 							fileTemp = new FileDB(Utils.getFileChecksum(md, file), file.getName(), file.getPath());
 							resultScanTemp.setFiledb(fileTemp);
-
 
 							fileTemp.setResultScan(resultScanTemp);
 
 							fileRepo.save(fileTemp);
-						//	System.out.println(fileTemp);
+							// System.out.println(fileTemp);
 						}
 					}
 				}
@@ -128,10 +137,32 @@ public class FileFolderScanner implements Runnable {
 		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm:ss");
 		LocalDateTime now = LocalDateTime.now();
 		String start = dtf.format(now);
+		if (initScanningDir == "") {
+			scanAll();
+		} else {
+			File temp = new File(initScanningDir);
+			FolderDB dir = new FolderDB(temp.getName(), temp.getPath());
+			try {
+				scanFolder(dir);
+			} catch (AntiVirusException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		now = LocalDateTime.now();
+		String end = dtf.format(now);
+
+		System.out.println("Done:\n start: " + start + "\nend: " + end);
+		System.out.println("scanning method: " + scanningMethod.getClass());
+		// debug();
+		scanning = false;
+	}
+
+	private void scanAll() {
 		FolderDB[] hardDrives = getAllHardDrives();
 		System.out.println("scanning method: " + scanningMethod.getClass());
 		for (FolderDB dir : hardDrives) {
-		//	 if (dir.getPath().contains("E")) {
+			// if (dir.getPath().contains("E")) {
 			System.out.println("starting scan in hardrive: " + dir.getPath());
 			try {
 				scanFolder(dir);
@@ -141,13 +172,6 @@ public class FileFolderScanner implements Runnable {
 			System.out.println("scan ended on hardrive: " + dir.getPath());
 			// }
 		}
-		now = LocalDateTime.now();
-		String end = dtf.format(now);
-
-		System.out.println("Done:\n start: " + start + "\nend: " + end);
-		System.out.println("scanning method: " + scanningMethod.getClass());
-		// debug();
-		scanning = false;
 	}
 
 	@Override
