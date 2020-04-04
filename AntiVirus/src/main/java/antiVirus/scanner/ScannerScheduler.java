@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Scanner;
 
 import javax.annotation.PostConstruct;
+import javax.swing.JOptionPane;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import antiVirus.analyzer.FileAnalyzer;
+import antiVirus.analyzer.hashAnalyzer.MalShareAnalyzer;
 import antiVirus.analyzer.hashAnalyzer.VirusTotalAnalyzer;
 import antiVirus.analyzer.yaraAnalyzer.YaraAnalyzer;
 import antiVirus.entities.FileDB;
@@ -39,11 +41,17 @@ public class ScannerScheduler {
 	@Autowired
 	private FileFolderScanner scanner;
 
+	// ranked from worst to best by time and performance
 	private Collection<FileAnalyzer> analyzeType;
+	// best analysis but limited to 4 requests per minute and 1k per day
 	@Autowired
-	private VirusTotalAnalyzer virusTotalAnalyzer;
+	private VirusTotalAnalyzer virusTotalAnalyzer;  
+	// least good analysis but always available 
 	@Autowired
 	private YaraAnalyzer yaraAnalyzer;
+	// good analysis but limited to 2000 requests per day
+	@Autowired
+	private MalShareAnalyzer malShareAnalyzer;
 
 	private boolean scan;
 
@@ -57,11 +65,11 @@ public class ScannerScheduler {
 
 	@PostConstruct
 	private void onStartUp() {
-		// analyzeType.add(virusTotalAnalyzer);
-		analyzeType.add(yaraAnalyzer);
+		analyzeType.add(yaraAnalyzer); 
+		analyzeType.add(malShareAnalyzer);
 		analyzeType.add(virusTotalAnalyzer);
-		scan();
 	}
+
 
 	@Scheduled(cron = "${scanner.scheduler.cron}")
 	private void scan() {
@@ -82,7 +90,8 @@ public class ScannerScheduler {
 
 	private void analyzeFiles() throws InterruptedException, AntiVirusAnalyzeException {
 		FileDB temp = null;
-		boolean result;
+		boolean result = false;
+		int count = 0;
 		try {
 			List<FileDB> list = scanner.getFileRepo().findAll();
 
@@ -95,26 +104,30 @@ public class ScannerScheduler {
 				temp = list.get(i);
 
 				temp.getResultScan().deserializeResultAnalyzer();
-				result = virusTotalAnalyzer.scanFile(temp);
-				temp.getResultScan().getResultAnalyzer().put(virusTotalAnalyzer, result);
 				
-				if (result) {
-					result = yaraAnalyzer.scanFile(temp);
-					temp.getResultScan().getResultAnalyzer().put(yaraAnalyzer, result);
+				count=0;
+				for(FileAnalyzer analyzer : analyzeType)
+				{
+					if((analyzer instanceof VirusTotalAnalyzer) && count == 0)
+						break;
+					result = analyzer.scanFile(temp);
+					temp.getResultScan().getResultAnalyzer().put(analyzer, result);
+					count += result ? 1 : 0;
+					if(count==2)
+						break;
 				}
-				temp.getResultScan().setResult(result);
-				temp.getResultScan().serializeResultAnalyzer();
 
+				temp.getResultScan().serializeResultAnalyzer();
+				temp.getResultScan().setResult(count);
 				scanner.getFileRepo().save(temp);
-				if (result) {
-					System.out.println("virus detected! " + temp);
-					Scanner scanner = new Scanner(System.in);
-					scanner.nextLine();
+				if (count == 2) {
+					System.out.println("virus found!! "+temp.getPath());
+					new Scanner(System.in).nextLine();
 				}
 			}
 
 		} catch (AntiVirusException e) {
-			throw new AntiVirusAnalyzeException("exception during analyze file: "+temp,e);
+			throw new AntiVirusAnalyzeException("exception during analyze file: " + temp, e);
 		}
 	}
 

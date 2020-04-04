@@ -15,7 +15,6 @@ import com.google.gson.JsonObject;
 import antiVirus.entities.FileDB;
 import antiVirus.analyzer.hashAnalyzer.jsonParser.VTHash;
 
-
 @Service
 public class VirusTotalAnalyzer implements HashAnalyzer {
 
@@ -29,11 +28,10 @@ public class VirusTotalAnalyzer implements HashAnalyzer {
 	public VirusTotalAnalyzer() {
 		this.gson = new Gson();
 	}
-	
+
 	@PostConstruct
-	private void setURI()
-	{
-		this.VT_URI = VT_URL+"?apikey=" + API_KEY + "&resource=";
+	private void setURI() {
+		this.VT_URI = VT_URL + "?apikey=" + API_KEY + "&resource=";
 	}
 
 	@Override
@@ -44,13 +42,14 @@ public class VirusTotalAnalyzer implements HashAnalyzer {
 
 			if (response.responseCode() == 200) {
 				String responseText = response.text();
-				
+
 				VTHash json = gson.fromJson(responseText, VTHash.class);
-				System.out.println(json);
 				if (json.responseCode == 1 && json.positives > 0) {
-					System.out.println("found VirusTotal: "+file.getPath());
+					System.out.println("found VirusTotal: " + file.getPath());
 					return true;
 				}
+			} else {
+				System.out.println("virusTotal returned: " + response.responseCode());
 			}
 		}
 		return false;

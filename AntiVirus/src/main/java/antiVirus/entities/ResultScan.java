@@ -51,7 +51,8 @@ public class ResultScan {
 
 	@Getter
 	@Setter
-	private boolean result;
+	// 0 - no virus, 1 - suspicious, 2 - virus 
+	private int result;
 
 	private String resultAnalyzerJSON;
 
