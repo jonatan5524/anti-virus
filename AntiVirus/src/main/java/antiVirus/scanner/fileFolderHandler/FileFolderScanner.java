@@ -50,14 +50,14 @@ public class FileFolderScanner implements Runnable {
 
 	public FileFolderScanner(String initScanningDir) {
 		this.initScanningDir = initScanningDir;
-		System.out.println("initScanningDir: "+initScanningDir);
+		System.out.println("initScanningDir: " + initScanningDir);
 	}
 
 	private void scanFolder(FolderDB dir) throws AntiVirusException {
-		FolderDB folderTemp;
-		FileDB fileTemp;
-		ResultScan resultScanTemp;
-		MessageDigest md;
+		FolderDB folderTemp = null;
+		FileDB fileTemp = null;
+		ResultScan resultScanTemp = null;
+		MessageDigest md = null;
 		try {
 			md = MessageDigest.getInstance(hashAlgorithm);
 		} catch (NoSuchAlgorithmException e) {
@@ -72,50 +72,58 @@ public class FileFolderScanner implements Runnable {
 			dir = scanningMethod.remove();
 			File[] files = new File(dir.getPath()).listFiles();
 			if (files != null) {
-				// go over all the files and sub directory in the current directory
-				for (File file : files) {
-					// if is a sub directory add to queue and to repository if needed
-					if (file.isDirectory()) {
-						if ((Utils.isUnix() && file.getPath() != "\\proc" && file.getPath() != "\\sys")
-								|| !Utils.isUnix()) {
-							if (!folderRepo.existsByPath(file.getPath())) {
-								// System.out.println(file.getPath());
-								folderTemp = new FolderDB(file.getName(), file.getPath());
-								folderRepo.save(folderTemp);
-							} else
-								folderTemp = folderRepo.findByPath(file.getPath());
-							scanningMethod.add(folderTemp);
-						}
-						// if is a file add to repository if needed
-					} else {
-						if (!fileRepo.existsByPath(file.getPath())) {
-							// System.out.println(file.getPath());
-							resultScanTemp = new ResultScan();
-							resultScanTemp.setResultAnalyzer(new HashMap<FileAnalyzer, Boolean>());
-
-							resultScanTemp.serializeResultAnalyzer();
-
-							fileTemp = new FileDB(Utils.getFileChecksum(md, file), file.getName(), file.getPath());
-							resultScanTemp.setFiledb(fileTemp);
-
-							fileTemp.setResultScan(resultScanTemp);
-
-							fileRepo.save(fileTemp);
-							// System.out.println(fileTemp);
-						}
-					}
-				}
+				scanFilesInDir(files, folderTemp, fileTemp, resultScanTemp, md);
 			}
 
 		}
 
 	}
 
-	/*
-	 * public void debug() { System.out.println("debug.....");
-	 * System.out.println("fileRepo count: " + fileRepo.count());
-	 * System.out.println("folderRepo count: " + folderRepo.count()); }
-	 */
+	private void scanFilesInDir(File[] files, FolderDB folderTemp, FileDB fileTemp, ResultScan resultScanTemp,
+			MessageDigest md) throws AntiVirusException {
+
+		for (File file : files) {
+
+			if (file.isDirectory()) {
+				if ((Utils.isUnix() && file.getPath() != "\\proc" && file.getPath() != "\\sys") || !Utils.isUnix()) {
+					handleFolder(file, folderTemp);
+				}
+			} else {
+				if (!fileRepo.existsByPath(file.getPath())) {
+					handleFile(file, resultScanTemp, fileTemp, md);
+				}
+			}
+		}
+	}
+
+	private void handleFile(File file, ResultScan resultScanTemp, FileDB fileTemp, MessageDigest md)
+			throws AntiVirusException {
+
+		resultScanTemp = new ResultScan();
+		resultScanTemp.setResultAnalyzer(new HashMap<FileAnalyzer, Boolean>());
+
+		resultScanTemp.serializeResultAnalyzer();
+
+		fileTemp = new FileDB(Utils.getFileChecksum(md, file), file.getName(), file.getPath());
+		resultScanTemp.setFiledb(fileTemp);
+
+		fileTemp.setResultScan(resultScanTemp);
+
+		fileRepo.save(fileTemp);
+	}
+
+	private void handleFolder(File file, FolderDB folderTemp) {
+		if (!folderRepo.existsByPath(file.getPath())) {
+			// System.out.println(file.getPath());
+			folderTemp = new FolderDB(file.getName(), file.getPath());
+			folderRepo.save(folderTemp);
+		} else {
+			folderTemp = folderRepo.findByPath(file.getPath());
+		}
+
+		scanningMethod.add(folderTemp);
+	}
+
 	private FolderDB[] getAllHardDrives() {
 		File[] paths;
 
@@ -134,9 +142,7 @@ public class FileFolderScanner implements Runnable {
 
 	private void startScanning() {
 		scanning = true;
-		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm:ss");
-		LocalDateTime now = LocalDateTime.now();
-		String start = dtf.format(now);
+
 		if (initScanningDir == "") {
 			scanAll();
 		} else {
@@ -145,16 +151,11 @@ public class FileFolderScanner implements Runnable {
 			try {
 				scanFolder(dir);
 			} catch (AntiVirusException e) {
-				// TODO Auto-generated catch block
+
 				e.printStackTrace();
 			}
 		}
-		now = LocalDateTime.now();
-		String end = dtf.format(now);
 
-		System.out.println("Done:\n start: " + start + "\nend: " + end);
-		System.out.println("scanning method: " + scanningMethod.getClass());
-		// debug();
 		scanning = false;
 	}
 
@@ -162,7 +163,7 @@ public class FileFolderScanner implements Runnable {
 		FolderDB[] hardDrives = getAllHardDrives();
 		System.out.println("scanning method: " + scanningMethod.getClass());
 		for (FolderDB dir : hardDrives) {
-			// if (dir.getPath().contains("E")) {
+
 			System.out.println("starting scan in hardrive: " + dir.getPath());
 			try {
 				scanFolder(dir);
@@ -170,7 +171,7 @@ public class FileFolderScanner implements Runnable {
 				e.printStackTrace();
 			}
 			System.out.println("scan ended on hardrive: " + dir.getPath());
-			// }
+
 		}
 	}
 

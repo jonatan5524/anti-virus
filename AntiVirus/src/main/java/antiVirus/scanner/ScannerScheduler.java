@@ -45,8 +45,8 @@ public class ScannerScheduler {
 	private Collection<FileAnalyzer> analyzeType;
 	// best analysis but limited to 4 requests per minute and 1k per day
 	@Autowired
-	private VirusTotalAnalyzer virusTotalAnalyzer;  
-	// least good analysis but always available 
+	private VirusTotalAnalyzer virusTotalAnalyzer;
+	// least good analysis but always available
 	@Autowired
 	private YaraAnalyzer yaraAnalyzer;
 	// good analysis but limited to 2000 requests per day
@@ -65,11 +65,10 @@ public class ScannerScheduler {
 
 	@PostConstruct
 	private void onStartUp() {
-		analyzeType.add(yaraAnalyzer); 
+		analyzeType.add(yaraAnalyzer);
 		analyzeType.add(malShareAnalyzer);
 		analyzeType.add(virusTotalAnalyzer);
 	}
-
 
 	@Scheduled(cron = "${scanner.scheduler.cron}")
 	private void scan() {
@@ -80,7 +79,7 @@ public class ScannerScheduler {
 
 				try {
 					analyzeFiles();
-				} catch (AntiVirusException | InterruptedException e) {
+				} catch (AntiVirusException e) {
 					e.printStackTrace();
 				}
 			}
@@ -88,10 +87,10 @@ public class ScannerScheduler {
 
 	}
 
-	private void analyzeFiles() throws InterruptedException, AntiVirusAnalyzeException {
+	private void analyzeFiles() throws AntiVirusAnalyzeException {
 		FileDB temp = null;
-		boolean result = false;
 		int count = 0;
+
 		try {
 			List<FileDB> list = scanner.getFileRepo().findAll();
 
@@ -104,31 +103,38 @@ public class ScannerScheduler {
 				temp = list.get(i);
 
 				temp.getResultScan().deserializeResultAnalyzer();
-				
-				count=0;
-				for(FileAnalyzer analyzer : analyzeType)
-				{
-					if((analyzer instanceof VirusTotalAnalyzer) && count == 0)
-						break;
-					result = analyzer.scanFile(temp);
-					temp.getResultScan().getResultAnalyzer().put(analyzer, result);
-					count += result ? 1 : 0;
-					if(count==2)
-						break;
-				}
+
+				count = analyzeSingleFile(temp);
 
 				temp.getResultScan().serializeResultAnalyzer();
 				temp.getResultScan().setResult(count);
 				scanner.getFileRepo().save(temp);
+				
 				if (count == 2) {
-					System.out.println("virus found!! "+temp.getPath());
+					System.out.println("virus found!! " + temp.getPath());
 					new Scanner(System.in).nextLine();
 				}
 			}
 
-		} catch (AntiVirusException e) {
+		} catch (AntiVirusException | InterruptedException e) {
 			throw new AntiVirusAnalyzeException("exception during analyze file: " + temp, e);
 		}
+	}
+
+	private int analyzeSingleFile(FileDB temp) throws AntiVirusException {
+		int count = 0;
+		boolean result;
+		for (FileAnalyzer analyzer : analyzeType) {
+			if ((analyzer instanceof VirusTotalAnalyzer) && count == 0)
+				break;
+			result = analyzer.scanFile(temp);
+			temp.getResultScan().getResultAnalyzer().put(analyzer, result);
+			count += result ? 1 : 0;
+			if (count == 2)
+				break;
+		}
+
+		return count;
 	}
 
 	private List<FileDB> waitForList(List<FileDB> list, int index) throws InterruptedException {

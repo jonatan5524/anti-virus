@@ -64,12 +64,7 @@ public class YaraAnalyzer implements FileAnalyzer {
 		}
 
 		try {
-			BufferedReader reader = new BufferedReader(new InputStreamReader(resScript.getInputStream()));
-			File pythonTempFile = File.createTempFile(resScript.getFilename(), "");
-			BufferedWriter writer = new BufferedWriter(new FileWriter(pythonTempFile));
-			readingWritingTemp(reader, writer);
-			reader.close();
-			writer.close();
+			File pythonTempFile = creatingTempFile(resScript);
 
 			scriptPath = pythonTempFile.getPath();
 		} catch (IOException e) {
@@ -86,20 +81,17 @@ public class YaraAnalyzer implements FileAnalyzer {
 		for (Yara yara : yaraRules) {
 			if (executeScript(yara, file.getPath())) {
 				count++;
-			//	System.out.print(yara.getName()+", ");
+				// check if the found yara is in the blacklist
 				if (Arrays.stream(yaraBlacklist).parallel().anyMatch(yara.getResPath()::contains)) {
 					System.out.println("yara found from blacklist: " + yara.getName());
 					return true;
-				} else
-				{
+				} else {
 					System.out.println("yara found: " + yara.getName());
-			
+
 				}
 			}
 			if (count >= 3) {
 				System.out.println("third yara found");
-				// Scanner sc = new Scanner(System.in);
-				// String name = sc.nextLine();
 				return true;
 			}
 
@@ -111,20 +103,23 @@ public class YaraAnalyzer implements FileAnalyzer {
 	private boolean executeScript(Yara yara, String path) throws AntiVirusYaraException {
 
 		Process p;
+		String command = pythonCommand + " \"" + scriptPath + "\" \"" + yara.getTempPath() + "\" \"" + path + "\"";
 		try {
-			p = Runtime.getRuntime()
-					.exec(pythonCommand + " \"" + scriptPath + "\" \"" + yara.getTempPath() + "\" \"" + path + "\"");
-			// System.out.println("command: "+pythonCommand + " \"" + scriptPath + "\" \"" +
-			// yara.getTempPath() + "\" \"" + path + "\"");
+			p = Runtime.getRuntime().exec(command);
+
 		} catch (IOException e) {
-			throw new AntiVirusYaraException("error excuting python script one of these parameters incorrect: "
-					+ pythonCommand + " \"" + scriptPath + "\" \"" + yara.getTempPath() + "\" \"" + path + "\"", e);
+			throw new AntiVirusYaraException(
+					"error excuting python script one of these parameters incorrect: " + command, e);
 		}
 
 		BufferedReader stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
 
 		BufferedReader stdError = new BufferedReader(new InputStreamReader(p.getErrorStream()));
 
+		return readFromProcess(stdInput, stdError);
+	}
+
+	private boolean readFromProcess(BufferedReader stdInput, BufferedReader stdError) throws AntiVirusYaraException {
 		String output, outputTot = "";
 		String error, errorTot = "";
 		try {
@@ -168,26 +163,28 @@ public class YaraAnalyzer implements FileAnalyzer {
 		}
 	}
 
-	private void readingWritingTemp(BufferedReader br, BufferedWriter bw) throws IOException {
+	private File creatingTempFile(Resource res) throws IOException {
+
+		File tempFile = File.createTempFile(res.getFilename(), "");
+		BufferedWriter writer = new BufferedWriter(new FileWriter(tempFile));
+		BufferedReader reader = new BufferedReader(new InputStreamReader(res.getInputStream()));
 
 		String line;
-		while ((line = br.readLine()) != null) {
-			bw.write(line);
-			bw.newLine();
+		while ((line = reader.readLine()) != null) {
+			writer.write(line);
+			writer.newLine();
 		}
 
+		reader.close();
+		writer.close();
+
+		return tempFile;
 	}
 
 	private void addNewYara(Resource res) throws AntiVirusScanningException {
 
 		try {
-			BufferedReader reader = new BufferedReader(new InputStreamReader(res.getInputStream()));
-
-			File yaraTempFile = File.createTempFile(res.getFilename(), "");
-			BufferedWriter writer = new BufferedWriter(new FileWriter(yaraTempFile));
-			readingWritingTemp(reader, writer);
-			reader.close();
-			writer.close();
+			File yaraTempFile = creatingTempFile(res);
 
 			yaraRules.add(new Yara(yaraTempFile.getName(), yaraTempFile.getPath(), res.getURI().toString()));
 		} catch (IOException e) {

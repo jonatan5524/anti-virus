@@ -24,7 +24,6 @@ public class AntiVirusApplication {
 	public static void main(String[] args) {
 		arguments = args;
 		ApplicationContext ctx = SpringApplication.run(AntiVirusApplication.class, args);
-		System.setProperty("java.awt.headless", "true");
 		ScannerScheduler scheduler = ctx.getBean(ScannerScheduler.class);
 
 	}	
