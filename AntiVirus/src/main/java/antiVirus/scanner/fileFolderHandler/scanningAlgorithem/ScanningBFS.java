@@ -2,7 +2,7 @@ package antiVirus.scanner.fileFolderHandler.scanningAlgorithem;
 
 import java.util.Stack;
 
-public class ScanningBFS<T> implements ScanningAlgorithemTemplate<T> {
+public class ScanningBFS<T> implements ScanningAlgorithm<T> {
 
 	private Stack<T> stack;
 

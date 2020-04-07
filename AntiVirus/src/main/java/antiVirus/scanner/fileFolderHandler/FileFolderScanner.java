@@ -10,6 +10,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 
+import javax.annotation.PostConstruct;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -23,7 +25,7 @@ import antiVirus.entities.ResultScan;
 import antiVirus.exceptions.AntiVirusException;
 import antiVirus.repositories.FileRepo;
 import antiVirus.repositories.FolderRepo;
-import antiVirus.scanner.fileFolderHandler.scanningAlgorithem.ScanningAlgorithemTemplate;
+import antiVirus.scanner.fileFolderHandler.scanningAlgorithem.ScanningAlgorithm;
 import antiVirus.utils.Utils;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -40,20 +42,25 @@ public class FileFolderScanner implements Runnable {
 	private FolderRepo folderRepo;
 	@Autowired // Default: BFS
 	@Setter
-	private ScanningAlgorithemTemplate<FolderDB> scanningMethod;
+	private ScanningAlgorithm<FolderDB> scanningMethod;
 	@Getter
-	private boolean duringScan;
+	private boolean isFileFolderScannerActive;
 	@Value("${file.hashAlgorithm}")
 	private String hashAlgorithm;
 
 	private MessageDigest messageDigest;
 
-	private String initScanningDir;
+	private String initScanningDirectory;
 
-	public FileFolderScanner(String initScanningDir) throws AntiVirusException {
-		duringScan = false;
-		this.initScanningDir = initScanningDir;
-		System.out.println("initScanningDir: " + initScanningDir);
+	public FileFolderScanner(String initScanningDirectory) throws AntiVirusException {
+		isFileFolderScannerActive = false;
+		this.initScanningDirectory = initScanningDirectory;
+		System.out.println("initScanningDir: " + initScanningDirectory);
+
+	}
+
+	@PostConstruct
+	public void initMessageDigest() throws AntiVirusException {
 		try {
 			messageDigest = MessageDigest.getInstance(hashAlgorithm);
 		} catch (NoSuchAlgorithmException e) {
@@ -62,14 +69,14 @@ public class FileFolderScanner implements Runnable {
 	}
 
 	private void scanFolder(FolderDB initDirDB) throws AntiVirusException {
-		FolderDB parentDirDB;
+		FolderDB parentDirectoryDB;
 		scanningMethod.init();
 		scanningMethod.add(initDirDB);
 
 		while (!scanningMethod.isEmpty()) {
 
-			parentDirDB = scanningMethod.remove();
-			File[] files = new File(parentDirDB.getPath()).listFiles();
+			parentDirectoryDB = scanningMethod.remove();
+			File[] files = new File(parentDirectoryDB.getPath()).listFiles();
 			if (files != null) {
 				scanFilesInDir(files);
 			}
@@ -83,7 +90,7 @@ public class FileFolderScanner implements Runnable {
 		for (File file : files) {
 
 			if (file.isDirectory()) {
-				if ((Utils.isUnix() && file.getPath() != "\\proc" && file.getPath() != "\\sys") || !Utils.isUnix()) {
+				if (needToAddFolderToDB(file.getPath())) {
 					insertFolderToDB(file);
 				}
 			} else {
@@ -92,6 +99,10 @@ public class FileFolderScanner implements Runnable {
 				}
 			}
 		}
+	}
+
+	private boolean needToAddFolderToDB(String filePath) {
+		return (Utils.isUnix() && filePath != "\\proc" && filePath != "\\sys") || !Utils.isUnix();
 	}
 
 	private void insertFileToDB(File file) throws AntiVirusException {
@@ -111,11 +122,13 @@ public class FileFolderScanner implements Runnable {
 
 	private void insertFolderToDB(File file) {
 		FolderDB folderTemp;
-		if (!folderRepo.existsByPath(file.getPath())) {
-			folderTemp = new FolderDB(file.getName(), file.getPath());
+		String filePath = file.getPath();
+
+		if (!folderRepo.existsByPath(filePath)) {
+			folderTemp = new FolderDB(file.getName(), filePath);
 			folderRepo.save(folderTemp);
 		} else {
-			folderTemp = folderRepo.findByPath(file.getPath());
+			folderTemp = folderRepo.findByPath(filePath);
 		}
 
 		scanningMethod.add(folderTemp);
@@ -129,28 +142,27 @@ public class FileFolderScanner implements Runnable {
 		FolderDB[] hardDrives = new FolderDB[paths.length];
 		for (int i = 0; i < paths.length; i++) {
 			System.out.println(paths[i]);
-			hardDrives[i] = new FolderDB((paths[i].getName() == "") ? paths[i].getPath() : paths[i].getName(),
-					paths[i].getPath());
+			hardDrives[i] = new FolderDB(paths[i].getPath(), paths[i].getPath());
 		}
 		return hardDrives;
 	}
 
 	private void startScanning() {
-		duringScan = true;
+		isFileFolderScannerActive = true;
 
-		if (initScanningDir == "") {
+		if (initScanningDirectory == "") {
 			scanAllFileSystem();
 		} else {
-			File initDirFile = new File(initScanningDir);
-			FolderDB initDirDB = new FolderDB(initDirFile.getName(), initDirFile.getPath());
+			File initDirectoryFile = new File(initScanningDirectory);
+			FolderDB initDirectoryDB = new FolderDB(initDirectoryFile.getName(), initDirectoryFile.getPath());
 			try {
-				scanFolder(initDirDB);
+				scanFolder(initDirectoryDB);
 			} catch (AntiVirusException e) {
 				e.printStackTrace();
 			}
 		}
 
-		duringScan = false;
+		isFileFolderScannerActive = false;
 	}
 
 	private void scanAllFileSystem() {

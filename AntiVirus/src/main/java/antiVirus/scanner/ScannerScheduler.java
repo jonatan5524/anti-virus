@@ -42,14 +42,14 @@ public class ScannerScheduler {
 	@Autowired
 	private MalShareAnalyzer malShareAnalyzer;
 
-	private boolean runScheduleScan;
+	private boolean needToRunScheduleScan;
 
 	@Value("${scannerScheduler.waitForDbRepoSleep}")
-	private int waitForDbRepoSleep;
+	private int waitForDbRepoSleepDuration;
 
 	public ScannerScheduler() {
 		analyzeType = new ArrayList<FileAnalyzer>();
-		runScheduleScan = true;
+		needToRunScheduleScan = true;
 	}
 
 	@PostConstruct
@@ -61,8 +61,8 @@ public class ScannerScheduler {
 
 	@Scheduled(cron = "${scanner.scheduler.cron}")
 	private void scheludeScan() {
-		if (runScheduleScan) {
-			if (!fileFolderScanner.isDuringScan()) {
+		if (needToRunScheduleScan) {
+			if (!fileFolderScanner.isFileFolderScannerActive()) {
 				fileFolderScanner.setScanningMethod(new ScanningBFS<FolderDB>());
 				taskExecutor.execute(fileFolderScanner);
 
@@ -84,7 +84,7 @@ public class ScannerScheduler {
 
 			DBlist = waitForDbRepo(DBlist, 0);
 
-			for (int i = 0; fileFolderScanner.isDuringScan() || i < DBlist.size(); i++) {
+			for (int i = 0; fileFolderScanner.isFileFolderScannerActive() || i < DBlist.size(); i++) {
 
 				DBlist = waitForDbRepo(DBlist, i);
 
@@ -126,18 +126,18 @@ public class ScannerScheduler {
 	}
 
 	private List<FileDB> waitForDbRepo(List<FileDB> DBlist, int index) throws InterruptedException {
-		while (fileFolderScanner.isDuringScan() && DBlist.size() == index) {
-			Thread.sleep(waitForDbRepoSleep);
+		while (fileFolderScanner.isFileFolderScannerActive() && DBlist.size() == index) {
+			Thread.sleep(waitForDbRepoSleepDuration);
 			DBlist = fileFolderScanner.getFileRepo().findAll();
 		}
 		return DBlist;
 	}
 
 	public void stopSchedule() {
-		runScheduleScan = false;
+		needToRunScheduleScan = false;
 	}
 
 	public void resumeSchedule() {
-		runScheduleScan = true;
+		needToRunScheduleScan = true;
 	}
 }

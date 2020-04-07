@@ -32,7 +32,7 @@ public class VirusTotalAnalyzer implements HashAnalyzer {
 
 	@Override
 	public boolean scanFile(FileDB file) {
-		if (!file.getHash().isBlank()) {
+		if (!file.getHash().isEmpty()) {
 			System.out.println("analyzing file - totalVirus: " + file.getPath());
 			Get response = Http.get(VT_URI + file.getHash());
 

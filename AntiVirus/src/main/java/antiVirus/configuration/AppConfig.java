@@ -11,7 +11,7 @@ import antiVirus.analyzer.yaraAnalyzer.YaraAnalyzer;
 import antiVirus.exceptions.AntiVirusException;
 import antiVirus.scanner.ScannerScheduler;
 import antiVirus.scanner.fileFolderHandler.FileFolderScanner;
-import antiVirus.scanner.fileFolderHandler.scanningAlgorithem.ScanningAlgorithemTemplate;
+import antiVirus.scanner.fileFolderHandler.scanningAlgorithem.ScanningAlgorithm;
 import antiVirus.scanner.fileFolderHandler.scanningAlgorithem.ScanningBFS;
 
 @Configuration
@@ -19,7 +19,7 @@ public class AppConfig {
 
 	// Default Method: BFS, can be changed using Set method
 	@Bean
-	public ScanningAlgorithemTemplate scanningAlgorithemTemplate() {
+	public ScanningAlgorithm scanningAlgorithemTemplate() {
 		return new ScanningBFS();
 	}
 

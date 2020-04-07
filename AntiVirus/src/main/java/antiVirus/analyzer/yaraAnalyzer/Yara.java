@@ -12,5 +12,4 @@ public class Yara {
 	private String name;
 	private String tempPath;
 	private String resPath;
-	//private String rule;
 }

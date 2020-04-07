@@ -3,7 +3,7 @@ package antiVirus.scanner.fileFolderHandler.scanningAlgorithem;
 import java.util.LinkedList;
 import java.util.Queue;
 
-public class ScanningDFS<T> implements ScanningAlgorithemTemplate<T> {
+public class ScanningDFS<T> implements ScanningAlgorithm<T> {
 
 	private Queue<T> queue;
 

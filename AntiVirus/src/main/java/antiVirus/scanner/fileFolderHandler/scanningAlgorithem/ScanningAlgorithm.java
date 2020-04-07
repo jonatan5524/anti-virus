@@ -1,6 +1,6 @@
 package antiVirus.scanner.fileFolderHandler.scanningAlgorithem;
 
-public interface ScanningAlgorithemTemplate<T> {
+public interface ScanningAlgorithm<T> {
 
 	public void init();
 

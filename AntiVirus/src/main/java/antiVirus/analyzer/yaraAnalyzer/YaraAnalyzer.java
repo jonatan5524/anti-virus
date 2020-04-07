@@ -20,8 +20,6 @@ import antiVirus.analyzer.FileAnalyzer;
 import antiVirus.entities.FileDB;
 import antiVirus.exceptions.AntiVirusScanningException;
 import antiVirus.exceptions.AntiVirusYaraException;
-import antiVirus.scanner.fileFolderHandler.scanningAlgorithem.ScanningAlgorithemTemplate;
-import antiVirus.scanner.fileFolderHandler.scanningAlgorithem.ScanningBFS;
 import lombok.ToString;
 
 @Service
@@ -32,9 +30,13 @@ public class YaraAnalyzer implements FileAnalyzer {
 
 	@Value("classpath:yaraAnalyze.py")
 	private Resource resourcePythonScript;
+
 	private String pythonScriptPath;
+
 	@Value("${yara.pythonCommand}")
 	private String pythonCommand;
+
+	@Value("${yara.blacklist}")
 	private String[] yaraBlacklist;
 
 	@Value("classpath:YaraRules/*/*.yar")
@@ -69,11 +71,12 @@ public class YaraAnalyzer implements FileAnalyzer {
 	public boolean scanFile(FileDB file) throws AntiVirusYaraException {
 		System.out.println("analyzing file - yara: " + file.getPath());
 		int yaraRuleFound = 0;
+
 		for (Yara yara : yaraRules) {
 			if (executeScript(yara, file.getPath())) {
 				yaraRuleFound++;
 				// check if the found yara is in the blacklist
-				if (Arrays.stream(yaraBlacklist).parallel().anyMatch(yara.getResPath()::contains)) {
+				if (isYaraRuleInBlackList(yara)) {
 					System.out.println("yara found from blacklist: " + yara.getName());
 					return true;
 				} else {
@@ -91,10 +94,15 @@ public class YaraAnalyzer implements FileAnalyzer {
 		return false;
 	}
 
+	public boolean isYaraRuleInBlackList(Yara yara) {
+		return Arrays.stream(yaraBlacklist).parallel().anyMatch(yara.getResPath()::contains);
+	}
+
 	private boolean executeScript(Yara yara, String path) throws AntiVirusYaraException {
 
 		Process p;
-		String command = pythonCommand + " \"" + pythonScriptPath + "\" \"" + yara.getTempPath() + "\" \"" + path + "\"";
+		String command = pythonCommand + " \"" + pythonScriptPath + "\" \"" + yara.getTempPath() + "\" \"" + path
+				+ "\"";
 		try {
 			p = Runtime.getRuntime().exec(command);
 
@@ -126,11 +134,11 @@ public class YaraAnalyzer implements FileAnalyzer {
 			throw new AntiVirusYaraException("exception reading from executable script", e);
 		}
 
-		if (errorTot.length() != 0 && errorTot != " " && errorTot.contains("YaraSyntaxError ")) {
-			System.out.println(errorTot);
+		if (!errorTot.isEmpty() && errorTot.contains("YaraSyntaxError ")) {
+			throw new AntiVirusYaraException("exception from yara python script: " + errorTot);
 		}
 
-		if (outputTot.length() != 0 && outputTot != " ") {
+		if (!outputTot.isEmpty()) {
 			return true;
 		}
 

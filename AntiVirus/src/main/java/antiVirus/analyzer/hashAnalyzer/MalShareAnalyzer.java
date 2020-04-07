@@ -20,11 +20,6 @@ public class MalShareAnalyzer implements HashAnalyzer {
 	@Value("${MalShare.URL}")
 	private String MS_URL;
 	private String MS_URI;
-	private Gson gson;
-
-	public MalShareAnalyzer() {
-		this.gson = new Gson();
-	}
 
 	@PostConstruct
 	private void setURI() {
@@ -33,7 +28,7 @@ public class MalShareAnalyzer implements HashAnalyzer {
 
 	@Override
 	public boolean scanFile(FileDB file) {
-		if (!file.getHash().isBlank()) {
+		if (!file.getHash().isEmpty()) {
 			System.out.println("analyzing file - MalShareAnalyzer: " + file.getPath());
 			Get response = Http.get(MS_URI + file.getHash());
 
