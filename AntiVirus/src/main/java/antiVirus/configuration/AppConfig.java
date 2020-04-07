@@ -1,15 +1,14 @@
 package antiVirus.configuration;
 
-import org.springframework.boot.ApplicationArguments;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import antiVirus.AntiVirusApplication;
 import antiVirus.analyzer.hashAnalyzer.VirusTotalAnalyzer;
 import antiVirus.analyzer.yaraAnalyzer.YaraAnalyzer;
+import antiVirus.exceptions.AntiVirusException;
 import antiVirus.scanner.ScannerScheduler;
 import antiVirus.scanner.fileFolderHandler.FileFolderScanner;
 import antiVirus.scanner.fileFolderHandler.scanningAlgorithem.ScanningAlgorithemTemplate;
@@ -41,18 +40,28 @@ public class AppConfig {
 
 	@Bean
 	public FileFolderScanner fileFolderScanner() {
+
+		try {
+			return new FileFolderScanner(handleArgs("-d"));
+		} catch (AntiVirusException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	private String handleArgs(String option) {
 		String temp = "";
 		if (AntiVirusApplication.arguments.length > 0) {
 			for (int i = 0; i < AntiVirusApplication.arguments.length; i++) {
-				if (AntiVirusApplication.arguments[i].equals("-d"))
-				{
+				if (AntiVirusApplication.arguments[i].equals(option)) {
 					temp = AntiVirusApplication.arguments[i + 1];
 					break;
 				}
 
 			}
 		}
-		return new FileFolderScanner(temp);
+		return temp;
 	}
 
 	@Bean

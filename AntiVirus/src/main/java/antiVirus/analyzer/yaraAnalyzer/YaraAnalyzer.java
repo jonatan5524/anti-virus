@@ -7,18 +7,12 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Scanner;
-
 import javax.annotation.PostConstruct;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
@@ -35,14 +29,12 @@ import lombok.ToString;
 public class YaraAnalyzer implements FileAnalyzer {
 
 	private Collection<Yara> yaraRules;
-	private ScanningAlgorithemTemplate<File> algorithemTemplate;
 
 	@Value("classpath:yaraAnalyze.py")
-	private Resource resScript;
-	private String scriptPath;
+	private Resource resourcePythonScript;
+	private String pythonScriptPath;
 	@Value("${yara.pythonCommand}")
 	private String pythonCommand;
-	@Value("${yara.blacklist}")
 	private String[] yaraBlacklist;
 
 	@Value("classpath:YaraRules/*/*.yar")
@@ -50,7 +42,6 @@ public class YaraAnalyzer implements FileAnalyzer {
 
 	public YaraAnalyzer() {
 		yaraRules = new ArrayList<Yara>();
-		algorithemTemplate = new ScanningBFS<File>();
 
 	}
 
@@ -64,9 +55,9 @@ public class YaraAnalyzer implements FileAnalyzer {
 		}
 
 		try {
-			File pythonTempFile = creatingTempFile(resScript);
+			File pythonTempFile = creatingTempFile(resourcePythonScript);
 
-			scriptPath = pythonTempFile.getPath();
+			pythonScriptPath = pythonTempFile.getPath();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			throw new AntiVirusYaraException("error loading python yara script from resources", e);
@@ -77,10 +68,10 @@ public class YaraAnalyzer implements FileAnalyzer {
 	@Override
 	public boolean scanFile(FileDB file) throws AntiVirusYaraException {
 		System.out.println("analyzing file - yara: " + file.getPath());
-		int count = 0;
+		int yaraRuleFound = 0;
 		for (Yara yara : yaraRules) {
 			if (executeScript(yara, file.getPath())) {
-				count++;
+				yaraRuleFound++;
 				// check if the found yara is in the blacklist
 				if (Arrays.stream(yaraBlacklist).parallel().anyMatch(yara.getResPath()::contains)) {
 					System.out.println("yara found from blacklist: " + yara.getName());
@@ -90,7 +81,7 @@ public class YaraAnalyzer implements FileAnalyzer {
 
 				}
 			}
-			if (count >= 3) {
+			if (yaraRuleFound >= 3) {
 				System.out.println("third yara found");
 				return true;
 			}
@@ -103,7 +94,7 @@ public class YaraAnalyzer implements FileAnalyzer {
 	private boolean executeScript(Yara yara, String path) throws AntiVirusYaraException {
 
 		Process p;
-		String command = pythonCommand + " \"" + scriptPath + "\" \"" + yara.getTempPath() + "\" \"" + path + "\"";
+		String command = pythonCommand + " \"" + pythonScriptPath + "\" \"" + yara.getTempPath() + "\" \"" + path + "\"";
 		try {
 			p = Runtime.getRuntime().exec(command);
 
@@ -131,7 +122,7 @@ public class YaraAnalyzer implements FileAnalyzer {
 				errorTot += error;
 			}
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+
 			throw new AntiVirusYaraException("exception reading from executable script", e);
 		}
 

@@ -1,35 +1,24 @@
 package antiVirus.scanner;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.Scanner;
 
 import javax.annotation.PostConstruct;
-import javax.swing.JOptionPane;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationContext;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
-
 import antiVirus.analyzer.FileAnalyzer;
 import antiVirus.analyzer.hashAnalyzer.MalShareAnalyzer;
 import antiVirus.analyzer.hashAnalyzer.VirusTotalAnalyzer;
 import antiVirus.analyzer.yaraAnalyzer.YaraAnalyzer;
 import antiVirus.entities.FileDB;
 import antiVirus.entities.FolderDB;
-import antiVirus.entities.ResultScan;
 import antiVirus.exceptions.AntiVirusAnalyzeException;
 import antiVirus.exceptions.AntiVirusException;
-import antiVirus.exceptions.AntiVirusScanningException;
 import antiVirus.scanner.fileFolderHandler.FileFolderScanner;
 import antiVirus.scanner.fileFolderHandler.scanningAlgorithem.ScanningBFS;
 
@@ -39,7 +28,7 @@ public class ScannerScheduler {
 	@Autowired
 	private TaskExecutor taskExecutor;
 	@Autowired
-	private FileFolderScanner scanner;
+	private FileFolderScanner fileFolderScanner;
 
 	// ranked from worst to best by time and performance
 	private Collection<FileAnalyzer> analyzeType;
@@ -53,14 +42,14 @@ public class ScannerScheduler {
 	@Autowired
 	private MalShareAnalyzer malShareAnalyzer;
 
-	private boolean scan;
+	private boolean runScheduleScan;
 
-	@Value("${scannerScheduler.waitForList}")
-	private int waitForList;
+	@Value("${scannerScheduler.waitForDbRepoSleep}")
+	private int waitForDbRepoSleep;
 
 	public ScannerScheduler() {
 		analyzeType = new ArrayList<FileAnalyzer>();
-		scan = true;
+		runScheduleScan = true;
 	}
 
 	@PostConstruct
@@ -71,11 +60,11 @@ public class ScannerScheduler {
 	}
 
 	@Scheduled(cron = "${scanner.scheduler.cron}")
-	private void scan() {
-		if (scan) {
-			if (!scanner.isScanning()) {
-				scanner.setScanningMethod(new ScanningBFS<FolderDB>());
-				taskExecutor.execute(scanner);
+	private void scheludeScan() {
+		if (runScheduleScan) {
+			if (!fileFolderScanner.isDuringScan()) {
+				fileFolderScanner.setScanningMethod(new ScanningBFS<FolderDB>());
+				taskExecutor.execute(fileFolderScanner);
 
 				try {
 					analyzeFiles();
@@ -84,72 +73,71 @@ public class ScannerScheduler {
 				}
 			}
 		}
-
 	}
 
 	private void analyzeFiles() throws AntiVirusAnalyzeException {
-		FileDB temp = null;
-		int count = 0;
+		FileDB tempFileDB = null;
+		int analyzeCounter = 0;
 
 		try {
-			List<FileDB> list = scanner.getFileRepo().findAll();
+			List<FileDB> DBlist = fileFolderScanner.getFileRepo().findAll();
 
-			list = waitForList(list, 0);
+			DBlist = waitForDbRepo(DBlist, 0);
 
-			for (int i = 0; scanner.isScanning() || i < list.size(); i++) {
+			for (int i = 0; fileFolderScanner.isDuringScan() || i < DBlist.size(); i++) {
 
-				list = waitForList(list, i);
+				DBlist = waitForDbRepo(DBlist, i);
 
-				temp = list.get(i);
+				tempFileDB = DBlist.get(i);
 
-				temp.getResultScan().deserializeResultAnalyzer();
+				tempFileDB.getResultScan().deserializeResultAnalyzer();
 
-				count = analyzeSingleFile(temp);
+				analyzeCounter = analyzeSingleFile(tempFileDB);
 
-				temp.getResultScan().serializeResultAnalyzer();
-				temp.getResultScan().setResult(count);
-				scanner.getFileRepo().save(temp);
-				
-				if (count == 2) {
-					System.out.println("virus found!! " + temp.getPath());
+				tempFileDB.getResultScan().serializeResultAnalyzer();
+				tempFileDB.getResultScan().setResult(analyzeCounter);
+				fileFolderScanner.getFileRepo().save(tempFileDB);
+
+				if (analyzeCounter == 2) {
+					System.out.println("virus found!! " + tempFileDB.getPath());
 					new Scanner(System.in).nextLine();
 				}
 			}
 
 		} catch (AntiVirusException | InterruptedException e) {
-			throw new AntiVirusAnalyzeException("exception during analyze file: " + temp, e);
+			throw new AntiVirusAnalyzeException("exception during analyze file: " + tempFileDB, e);
 		}
 	}
 
-	private int analyzeSingleFile(FileDB temp) throws AntiVirusException {
-		int count = 0;
+	private int analyzeSingleFile(FileDB tempFileDB) throws AntiVirusException {
+		int analyzeCounter = 0;
 		boolean result;
 		for (FileAnalyzer analyzer : analyzeType) {
-			if ((analyzer instanceof VirusTotalAnalyzer) && count == 0)
+			if ((analyzer instanceof VirusTotalAnalyzer) && analyzeCounter == 0)
 				break;
-			result = analyzer.scanFile(temp);
-			temp.getResultScan().getResultAnalyzer().put(analyzer, result);
-			count += result ? 1 : 0;
-			if (count == 2)
+			result = analyzer.scanFile(tempFileDB);
+			tempFileDB.getResultScan().getResultAnalyzer().put(analyzer, result);
+			analyzeCounter += result ? 1 : 0;
+			if (analyzeCounter == 2)
 				break;
 		}
 
-		return count;
+		return analyzeCounter;
 	}
 
-	private List<FileDB> waitForList(List<FileDB> list, int index) throws InterruptedException {
-		while (scanner.isScanning() && list.size() == index) {
-			Thread.sleep(waitForList);
-			list = scanner.getFileRepo().findAll();
+	private List<FileDB> waitForDbRepo(List<FileDB> DBlist, int index) throws InterruptedException {
+		while (fileFolderScanner.isDuringScan() && DBlist.size() == index) {
+			Thread.sleep(waitForDbRepoSleep);
+			DBlist = fileFolderScanner.getFileRepo().findAll();
 		}
-		return list;
+		return DBlist;
 	}
 
 	public void stopSchedule() {
-		scan = false;
+		runScheduleScan = false;
 	}
 
 	public void resumeSchedule() {
-		scan = true;
+		runScheduleScan = true;
 	}
 }

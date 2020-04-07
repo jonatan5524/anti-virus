@@ -4,14 +4,10 @@ import javax.annotation.PostConstruct;
 
 import org.javalite.http.Get;
 import org.javalite.http.Http;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Service;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-
 import antiVirus.entities.FileDB;
 import antiVirus.analyzer.hashAnalyzer.jsonParser.VTHash;
 
