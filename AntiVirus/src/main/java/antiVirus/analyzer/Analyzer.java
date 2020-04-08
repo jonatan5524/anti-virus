@@ -70,6 +70,8 @@ public class Analyzer {
 		tempFileDB.getResultScan().serializeResultAnalyzer();
 		tempFileDB.getResultScan().setResult(resultScanStatus.values()[analyzeCounter]);
 
+		fileFolderScanner.getFileRepo().save(tempFileDB);
+		
 		if (analyzeCounter == 2) {
 			System.out.println("virus found!! " + tempFileDB.getPath());
 			new Scanner(System.in).nextLine();
