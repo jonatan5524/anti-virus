@@ -4,6 +4,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
@@ -23,6 +26,7 @@ import antiVirus.entities.FileDB;
 import antiVirus.entities.FolderDB;
 import antiVirus.entities.ResultScan;
 import antiVirus.exceptions.AntiVirusException;
+import antiVirus.exceptions.AntiVirusScanningException;
 import antiVirus.repositories.FileRepo;
 import antiVirus.repositories.FolderRepo;
 import antiVirus.scanner.fileFolderHandler.scanningAlgorithem.ScanningAlgorithm;
@@ -31,8 +35,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Component
-@NoArgsConstructor
 public class FileFolderScanner implements Runnable {
 
 	@Getter
@@ -50,14 +52,15 @@ public class FileFolderScanner implements Runnable {
 
 	private MessageDigest messageDigest;
 
+	@Getter
 	private String initScanningDirectory;
 
-	public FileFolderScanner(String initScanningDirectory) throws AntiVirusException {
+	public FileFolderScanner() {
 		isFileFolderScannerActive = false;
-		this.initScanningDirectory = initScanningDirectory;
-		System.out.println("initScanningDir: " + initScanningDirectory);
-
+		this.initScanningDirectory = "";
 	}
+	
+	
 
 	@PostConstruct
 	public void initMessageDigest() throws AntiVirusException {
@@ -80,9 +83,7 @@ public class FileFolderScanner implements Runnable {
 			if (files != null) {
 				scanFilesInDir(files);
 			}
-
 		}
-
 	}
 
 	private void scanFilesInDir(File[] files) throws AntiVirusException {
@@ -97,7 +98,21 @@ public class FileFolderScanner implements Runnable {
 				if (!fileRepo.existsByPath(file.getPath())) {
 					insertFileToDB(file);
 				}
+				else {
+					changeFileHash(file);
+				}
 			}
+		}
+	}
+	
+	private void changeFileHash(File file)
+	{
+		FileDB fileDBTemp = fileRepo.findByPath(file.getPath());		
+		String newHash = Utils.getFileChecksum(messageDigest, file);
+		if(!newHash.contentEquals(fileDBTemp.getHash()))
+		{
+			fileDBTemp.setHash(newHash);
+			fileDBTemp.getResultScan().setResult(null);
 		}
 	}
 
@@ -108,6 +123,7 @@ public class FileFolderScanner implements Runnable {
 	private void insertFileToDB(File file) throws AntiVirusException {
 
 		ResultScan resultScanTemp = new ResultScan();
+		resultScanTemp.setResult(null);
 		resultScanTemp.setResultAnalyzer(new HashMap<FileAnalyzer, Boolean>());
 
 		resultScanTemp.serializeResultAnalyzer();
@@ -153,6 +169,7 @@ public class FileFolderScanner implements Runnable {
 		if (initScanningDirectory == "") {
 			scanAllFileSystem();
 		} else {
+			System.out.println("started scan from: "+initScanningDirectory);
 			File initDirectoryFile = new File(initScanningDirectory);
 			FolderDB initDirectoryDB = new FolderDB(initDirectoryFile.getName(), initDirectoryFile.getPath());
 			try {
@@ -184,6 +201,17 @@ public class FileFolderScanner implements Runnable {
 	@Override
 	public void run() {
 		startScanning();
+	}
+
+
+	public void setInitScanningDirectory(String initScanningDirectory) throws AntiVirusScanningException {
+	
+		if(!(new File(initScanningDirectory).exists()))
+		{
+			throw new AntiVirusScanningException("the init Path is invalid! ");
+		}
+
+		this.initScanningDirectory = initScanningDirectory;
 	}
 
 }

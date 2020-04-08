@@ -1,15 +1,22 @@
 package antiVirus.configuration;
 
+import java.util.Collection;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Scope;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import antiVirus.AntiVirusApplication;
+import antiVirus.analyzer.Analyzer;
+import antiVirus.analyzer.FileAnalyzer;
+import antiVirus.analyzer.hashAnalyzer.MalShareAnalyzer;
 import antiVirus.analyzer.hashAnalyzer.VirusTotalAnalyzer;
 import antiVirus.analyzer.yaraAnalyzer.YaraAnalyzer;
 import antiVirus.exceptions.AntiVirusException;
 import antiVirus.scanner.ScannerScheduler;
+import antiVirus.scanner.UserRequestScanner;
 import antiVirus.scanner.fileFolderHandler.FileFolderScanner;
 import antiVirus.scanner.fileFolderHandler.scanningAlgorithem.ScanningAlgorithm;
 import antiVirus.scanner.fileFolderHandler.scanningAlgorithem.ScanningBFS;
@@ -21,6 +28,23 @@ public class AppConfig {
 	@Bean
 	public ScanningAlgorithm scanningAlgorithemTemplate() {
 		return new ScanningBFS();
+	}
+
+	@Bean
+	@Scope("prototype")
+	public Analyzer analyzer(FileFolderScanner fileFolderScanner,Collection<FileAnalyzer> analyzeType) {
+		return new Analyzer(fileFolderScanner,analyzeType);
+	}
+	
+	@Bean
+	@Scope("prototype")
+	public UserRequestScanner userRequestScanner(String initDirectoryPath) {
+		return new UserRequestScanner(initDirectoryPath);
+	}
+	
+	@Bean
+	public MalShareAnalyzer malShareAnalyzer() {
+		return new MalShareAnalyzer();
 	}
 
 	@Bean
@@ -39,29 +63,10 @@ public class AppConfig {
 	}
 
 	@Bean
+	@Scope("prototype")
 	public FileFolderScanner fileFolderScanner() {
+		return new FileFolderScanner();
 
-		try {
-			return new FileFolderScanner(handleArgs("-d"));
-		} catch (AntiVirusException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return null;
-	}
-
-	private String handleArgs(String option) {
-		String temp = "";
-		if (AntiVirusApplication.arguments.length > 0) {
-			for (int i = 0; i < AntiVirusApplication.arguments.length; i++) {
-				if (AntiVirusApplication.arguments[i].equals(option)) {
-					temp = AntiVirusApplication.arguments[i + 1];
-					break;
-				}
-
-			}
-		}
-		return temp;
 	}
 
 	@Bean

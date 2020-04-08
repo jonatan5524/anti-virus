@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import antiVirus.scanner.ScannerScheduler;
+import antiVirus.scanner.UserRequestScanner;
 
 
 
@@ -19,12 +20,12 @@ import antiVirus.scanner.ScannerScheduler;
 @EnableScheduling
 public class AntiVirusApplication {
 	
-	public static String[] arguments;
-	
 	public static void main(String[] args) {
-		arguments = args;
+
 		ApplicationContext ctx = SpringApplication.run(AntiVirusApplication.class, args);
 		ScannerScheduler scheduler = ctx.getBean(ScannerScheduler.class);
-
+		
+		UserRequestScanner user = ctx.getBean(UserRequestScanner.class,"C:\\Users\\jonat\\Desktop\\webserviceStatus\\server-monitor\\src");
+		user.startScan();
 	}	
 }

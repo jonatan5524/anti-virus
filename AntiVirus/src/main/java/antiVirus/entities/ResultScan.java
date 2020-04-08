@@ -7,6 +7,7 @@ import java.util.Map;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.Lob;
 import javax.persistence.MapsId;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
@@ -39,9 +40,9 @@ public class ResultScan {
 
 	@Getter
 	@Setter
-	// 0 - no virus, 1 - suspicious, 2 - virus 
-	private int result;
-
+	private resultScanStatus result;
+	
+	@Lob
 	private String resultAnalyzerJSON;
 
 	@Getter

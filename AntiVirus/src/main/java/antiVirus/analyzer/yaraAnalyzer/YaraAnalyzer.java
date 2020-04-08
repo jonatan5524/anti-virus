@@ -148,13 +148,12 @@ public class YaraAnalyzer implements FileAnalyzer {
 	@PostConstruct
 	private void initYaraRules() {
 		URL folderURL = YaraAnalyzer.class.getClassLoader().getResource("YaraRules");
-		System.out.println("path " + folderURL);
+		//System.out.println("path " + folderURL);
 
-		System.out.println("yara rules:");
+		//System.out.println("yara rules:");
 		for (Resource res : resourcesRules) {
 			try {
-				System.out.println(res);
-
+			//	System.out.println(res);
 				addNewYara(res);
 			} catch (AntiVirusScanningException e) {
 				e.printStackTrace();

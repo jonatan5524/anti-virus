@@ -43,6 +43,11 @@ public class Utils {
 		return digest.digest();
 
 	}
+	
+	public static String convertPathToValidMySQLSearch(String path)
+	{
+		return path.replace("\\", "%");
+	}
 
 	public static boolean isWindows() {
 
