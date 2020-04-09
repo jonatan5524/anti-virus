@@ -10,6 +10,8 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.logging.Logger;
+
 import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -68,8 +70,8 @@ public class YaraAnalyzer implements FileAnalyzer {
 	}
 
 	@Override
-	public boolean scanFile(FileDB file) throws AntiVirusYaraException {
-		System.out.println("analyzing file - yara: " + file.getPath());
+	public boolean scanFile(FileDB file,Logger logger) throws AntiVirusYaraException {
+		logger.info("analyzing file - yara: " + file.getPath());
 		int yaraRuleFound = 0;
 
 		for (Yara yara : yaraRules) {
@@ -77,15 +79,15 @@ public class YaraAnalyzer implements FileAnalyzer {
 				yaraRuleFound++;
 				// check if the found yara is in the blacklist
 				if (isYaraRuleInBlackList(yara)) {
-					System.out.println("yara found from blacklist: " + yara.getName());
+					logger.info("yara found from blacklist: " + yara.getName());
 					return true;
 				} else {
-					System.out.println("yara found: " + yara.getName());
+					logger.info("yara found: " + yara.getName());
 
 				}
 			}
 			if (yaraRuleFound >= 3) {
-				System.out.println("third yara found");
+				logger.info("third yara found");
 				return true;
 			}
 

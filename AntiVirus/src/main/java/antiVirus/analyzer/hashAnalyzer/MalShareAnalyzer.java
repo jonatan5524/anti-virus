@@ -1,5 +1,7 @@
 package antiVirus.analyzer.hashAnalyzer;
 
+import java.util.logging.Logger;
+
 import javax.annotation.PostConstruct;
 
 import org.javalite.http.Get;
@@ -27,17 +29,17 @@ public class MalShareAnalyzer implements HashAnalyzer {
 	}
 
 	@Override
-	public boolean scanFile(FileDB file) {
+	public boolean scanFile(FileDB file,Logger logger) {
 		if (!file.getHash().isEmpty()) {
-			System.out.println("analyzing file - MalShareAnalyzer: " + file.getPath());
+			logger.info("analyzing file - MalShareAnalyzer: " + file.getPath());
 			Get response = Http.get(MS_URI + file.getHash());
 
 			if (response.responseCode() == 200) {
-				System.out.println("found MalShareAnalyzer: " + file.getPath());
+				logger.info("found MalShareAnalyzer: " + file.getPath());
 				return true;
 
 			}else if(response.responseCode() != 404) {
-				System.out.println("malShare returned: " + response.responseCode());
+				logger.info("malShare returned: " + response.responseCode());
 			}
 		}
 		return false;

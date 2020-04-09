@@ -7,7 +7,9 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.stereotype.Controller;
 
+import antiVirus.exceptions.AntiVirusAnalyzeException;
 import antiVirus.scanner.ScannerScheduler;
 import antiVirus.scanner.UserRequestScanner;
 
@@ -16,6 +18,7 @@ import antiVirus.scanner.UserRequestScanner;
 @SpringBootApplication
 @ComponentScan
 @EntityScan
+@Controller
 @EnableJpaRepositories
 @EnableScheduling
 public class AntiVirusApplication {
@@ -25,7 +28,15 @@ public class AntiVirusApplication {
 		ApplicationContext ctx = SpringApplication.run(AntiVirusApplication.class, args);
 		ScannerScheduler scheduler = ctx.getBean(ScannerScheduler.class);
 		
-		UserRequestScanner user = ctx.getBean(UserRequestScanner.class,"C:\\Users\\jonat\\Desktop\\webserviceStatus\\server-monitor\\src");
-		user.startScan();
+		UserRequestScanner user = ctx.getBean(UserRequestScanner.class);
+		/*
+		user.setInitDirectoryPath("C:\\Users\\jonat\\Desktop\\webserviceStatus\\server-monitor\\src");
+		try {
+			user.startScan();
+		} catch (AntiVirusAnalyzeException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		*/
 	}	
 }

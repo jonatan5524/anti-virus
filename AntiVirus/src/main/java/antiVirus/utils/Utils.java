@@ -4,7 +4,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.security.MessageDigest;
+
+import org.apache.commons.io.IOUtils;
+
+import antiVirus.exceptions.AntiVirusException;
 
 public class Utils {
 
@@ -16,7 +21,7 @@ public class Utils {
 			if (file.length() == 0) {
 				return "";
 			}
-			byte[] bytes = readByteFromFile(digest, file);
+			byte[] bytes = readByteFromFileHash(digest, file);
 			// This bytes[] has bytes in decimal format;
 			// Convert it to hexadecimal format
 			StringBuilder sb = new StringBuilder();
@@ -29,7 +34,7 @@ public class Utils {
 		}
 	}
 
-	private static byte[] readByteFromFile(MessageDigest digest, File file) throws IOException {
+	private static byte[] readByteFromFileHash(MessageDigest digest, File file) throws IOException {
 		FileInputStream fis = new FileInputStream(file);
 		byte[] byteArray = new byte[(int) file.length()];
 		int bytesCount = 0;
@@ -42,6 +47,16 @@ public class Utils {
 
 		return digest.digest();
 
+	}
+	
+	public static byte[] readByteArrayFromFile(String path) throws AntiVirusException
+	{
+		try {
+			InputStream in = new FileInputStream(new File(path));
+			return IOUtils.toByteArray(in);
+		} catch (IOException e) {
+			throw new AntiVirusException("error reading log file " + path, e);
+		}
 	}
 	
 	public static String convertPathToValidMySQLSearch(String path)

@@ -37,9 +37,8 @@ public class AppConfig {
 	}
 	
 	@Bean
-	@Scope("prototype")
-	public UserRequestScanner userRequestScanner(String initDirectoryPath) {
-		return new UserRequestScanner(initDirectoryPath);
+	public UserRequestScanner userRequestScanner() {
+		return new UserRequestScanner();
 	}
 	
 	@Bean

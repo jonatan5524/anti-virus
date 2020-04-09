@@ -1,8 +1,10 @@
 package antiVirus.analyzer;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Scanner;
+import java.util.logging.Logger;
 
 import org.springframework.beans.factory.annotation.Value;
 
@@ -15,8 +17,14 @@ import antiVirus.exceptions.AntiVirusException;
 import antiVirus.repositories.FileRepo;
 import antiVirus.scanner.fileFolderHandler.FileFolderScanner;
 import antiVirus.utils.Utils;
+import lombok.Getter;
+import lombok.Setter;
 
 public class Analyzer {
+
+	@Setter
+	@Getter
+	private Logger logger;
 
 	private FileFolderScanner fileFolderScanner;
 
@@ -31,17 +39,17 @@ public class Analyzer {
 	public Analyzer(FileFolderScanner fileFolderScanner, Collection<FileAnalyzer> analyzeType) {
 		this.fileFolderScanner = fileFolderScanner;
 		this.analyzeType = analyzeType;
-		this.initScanningDirectory = fileFolderScanner.getInitScanningDirectory();
+
 	}
 
 	public void analyzeFiles() throws AntiVirusAnalyzeException {
 		if (analyzeType == null)
 			throw new AntiVirusAnalyzeException("analyzeType is not set before starting the analyze!");
+		this.initScanningDirectory = fileFolderScanner.getInitScanningDirectory();
 
 		FileDB tempFileDB = null;
 
 		try {
-			System.out.println("init: " + initScanningDirectory);
 			List<FileDB> DBlist = getDBListFromRepo();
 
 			DBlist = waitForDbRepo(DBlist, 0);
@@ -71,20 +79,20 @@ public class Analyzer {
 		tempFileDB.getResultScan().setResult(resultScanStatus.values()[analyzeCounter]);
 
 		fileFolderScanner.getFileRepo().save(tempFileDB);
-		
+
 		if (analyzeCounter == 2) {
-			System.out.println("virus found!! " + tempFileDB.getPath());
-			new Scanner(System.in).nextLine();
+			logger.info("virus found!! " + tempFileDB.getPath());
 		}
 	}
 
 	private int analyzeSingleFile(FileDB tempFileDB) throws AntiVirusException {
 		int analyzeCounter = 0;
 		boolean result;
+		logger.info("analyzing file: " + tempFileDB.getPath());
 		for (FileAnalyzer analyzer : analyzeType) {
 			if ((analyzer instanceof VirusTotalAnalyzer) && analyzeCounter == 0)
 				break;
-			result = analyzer.scanFile(tempFileDB);
+			result = analyzer.scanFile(tempFileDB,logger);
 			tempFileDB.getResultScan().getResultAnalyzer().put(analyzer, result);
 			analyzeCounter += result ? 1 : 0;
 			if (analyzeCounter == 2)
@@ -99,16 +107,15 @@ public class Analyzer {
 
 		while (needToWaitForList(index)) {
 			Thread.sleep(waitForDbRepoSleepDuration);
-
-			DBlist = getDBListFromRepo();
 		}
+
+		DBlist = getDBListFromRepo();
 		return DBlist;
 	}
 
 	private boolean needToWaitForList(int index) {
 		FileRepo fileRepoTemp = fileFolderScanner.getFileRepo();
 		long count;
-
 		if (initScanningDirectory.isEmpty()) {
 			count = fileRepoTemp.count();
 		} else {

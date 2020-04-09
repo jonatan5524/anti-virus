@@ -1,5 +1,7 @@
 package antiVirus.analyzer.hashAnalyzer;
 
+import java.util.logging.Logger;
+
 import javax.annotation.PostConstruct;
 
 import org.javalite.http.Get;
@@ -31,9 +33,9 @@ public class VirusTotalAnalyzer implements HashAnalyzer {
 	}
 
 	@Override
-	public boolean scanFile(FileDB file) {
+	public boolean scanFile(FileDB file,Logger logger) {
 		if (!file.getHash().isEmpty()) {
-			System.out.println("analyzing file - totalVirus: " + file.getPath());
+			logger.info("analyzing file - totalVirus: " + file.getPath());
 			Get response = Http.get(VT_URI + file.getHash());
 
 			if (response.responseCode() == 200) {
@@ -41,11 +43,11 @@ public class VirusTotalAnalyzer implements HashAnalyzer {
 
 				VTHash json = gson.fromJson(responseText, VTHash.class);
 				if (json.responseCode == 1 && json.positives > 0) {
-					System.out.println("found VirusTotal: " + file.getPath());
+					logger.info("found VirusTotal: " + file.getPath());
 					return true;
 				}
 			} else {
-				System.out.println("virusTotal returned: " + response.responseCode());
+				logger.info("virusTotal returned: " + response.responseCode());
 			}
 		}
 		return false;
