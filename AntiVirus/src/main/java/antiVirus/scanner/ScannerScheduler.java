@@ -14,6 +14,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.CrossOrigin;
 
 import antiVirus.analyzer.Analyzer;
 import antiVirus.analyzer.FileAnalyzer;
@@ -29,6 +30,7 @@ import antiVirus.scanner.fileFolderHandler.FileFolderScanner;
 import antiVirus.scanner.fileFolderHandler.scanningAlgorithem.ScanningBFS;
 import lombok.Getter;
 
+@CrossOrigin
 @Component
 public class ScannerScheduler {
 
@@ -51,17 +53,22 @@ public class ScannerScheduler {
 	@Getter
 	private Analyzer analyzer;
 
+	@Getter
+	private boolean isActiveScanning;
+	
 	// ranked from worst to best by time and performance
 	private Collection<FileAnalyzer> analyzeType;
 
 	public ScannerScheduler() {
 		analyzeType = new ArrayList<FileAnalyzer>();
 		logger = Logger.getLogger(ScannerScheduler.class.getName());
+		isActiveScanning = false;
 		try {
 			loggerPath = loggerManager.setUpLogger(logger);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		
 	}
 
 	@PostConstruct
@@ -78,7 +85,9 @@ public class ScannerScheduler {
 
 	@Scheduled(cron = "${scanner.scheduler.cron}")
 	private void scheludeScan() {
+		
 		if (!fileFolderScanner.isFileFolderScannerActive()) {
+			isActiveScanning = true;
 			logger.info("scedule scan started!");
 			fileFolderScanner.setScanningMethod(new ScanningBFS<FolderDB>());
 			taskExecutor.execute(fileFolderScanner);
@@ -89,6 +98,7 @@ public class ScannerScheduler {
 			} catch (AntiVirusException | InterruptedException e) {
 				e.printStackTrace();
 			}
+			isActiveScanning = false;
 		}
 
 	}

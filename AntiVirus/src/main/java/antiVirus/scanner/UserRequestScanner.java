@@ -53,10 +53,14 @@ public class UserRequestScanner {
 	private Collection<FileAnalyzer> analyzeType;
 
 	private String initDirectoryPath;
+	
+	@Getter
+	private boolean isActiveScanning;
 
 	public UserRequestScanner() {
 		analyzeType = new ArrayList<FileAnalyzer>();
 		initDirectoryPath = "";
+		isActiveScanning = false;
 		logger = Logger.getLogger(UserRequestScanner.class.getName());
 		try {
 			loggerPath = loggerManager.setUpLogger(logger);
@@ -94,6 +98,7 @@ public class UserRequestScanner {
 	public void startScan() throws AntiVirusAnalyzeException, AntiVirusUserException {
 		if (initDirectoryPath == "")
 			throw new AntiVirusUserException("init directory path is not set for user scan");
+		isActiveScanning = true;
 		logger.info("scan started at init scanning Directory: " + initDirectoryPath);
 		fileFolderScanner.setScanningMethod(new ScanningBFS<FolderDB>());
 		taskExecutor.execute(fileFolderScanner);
@@ -104,6 +109,7 @@ public class UserRequestScanner {
 		} catch (AntiVirusException | InterruptedException e) {
 			e.printStackTrace();
 		}
+		isActiveScanning = false;
 
 	}
 
