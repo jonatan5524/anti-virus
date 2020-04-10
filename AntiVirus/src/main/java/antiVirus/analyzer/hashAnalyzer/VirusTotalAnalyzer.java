@@ -47,7 +47,7 @@ public class VirusTotalAnalyzer implements HashAnalyzer {
 					return true;
 				}
 			} else {
-				logger.info("virusTotal returned: " + response.responseCode());
+				logger.warning("virusTotal returned: " + response.responseCode());
 			}
 		}
 		return false;

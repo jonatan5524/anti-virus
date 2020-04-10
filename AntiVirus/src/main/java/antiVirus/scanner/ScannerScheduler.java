@@ -8,6 +8,8 @@ import java.util.Scanner;
 import java.util.logging.Logger;
 
 import javax.annotation.PostConstruct;
+import javax.validation.constraints.Min;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;

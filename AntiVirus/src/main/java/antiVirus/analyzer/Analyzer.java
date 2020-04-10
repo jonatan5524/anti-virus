@@ -1,6 +1,7 @@
 package antiVirus.analyzer;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Scanner;
@@ -27,6 +28,11 @@ public class Analyzer {
 	private Logger logger;
 
 	private FileFolderScanner fileFolderScanner;
+	
+	@Getter
+	private Collection<String> virusFoundList;
+	@Getter
+	private Collection<String> virusSuspiciousList;
 
 	// ranked from worst to best by time and performance
 	private Collection<FileAnalyzer> analyzeType;
@@ -39,7 +45,8 @@ public class Analyzer {
 	public Analyzer(FileFolderScanner fileFolderScanner, Collection<FileAnalyzer> analyzeType) {
 		this.fileFolderScanner = fileFolderScanner;
 		this.analyzeType = analyzeType;
-
+		virusFoundList = new ArrayList<String>();
+		virusSuspiciousList = new ArrayList<String>();
 	}
 
 	public void analyzeFiles() throws AntiVirusAnalyzeException {
@@ -79,9 +86,13 @@ public class Analyzer {
 		tempFileDB.getResultScan().setResult(resultScanStatus.values()[analyzeCounter]);
 
 		fileFolderScanner.getFileRepo().save(tempFileDB);
-
-		if (analyzeCounter == 2) {
+		virusFoundList.add(tempFileDB.getPath());
+		if (analyzeCounter >= 2) {
+			virusFoundList.add(tempFileDB.getPath());
 			logger.info("virus found!! " + tempFileDB.getPath());
+		}
+		else if(analyzeCounter == 1) {
+			virusSuspiciousList.add(tempFileDB.getPath());
 		}
 	}
 

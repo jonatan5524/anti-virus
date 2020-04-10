@@ -6,3 +6,14 @@
 #AntiVirusHeader {
     font-size: 3em;
 }
+
+#log{
+    overflow: scroll;
+    height: 20em;
+    white-space: pre-line;
+    text-align: left;
+}
+
+#initDirectoryInput {
+    width: 50em;
+}

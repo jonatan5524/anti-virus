@@ -39,7 +39,7 @@ public class MalShareAnalyzer implements HashAnalyzer {
 				return true;
 
 			}else if(response.responseCode() != 404) {
-				logger.info("malShare returned: " + response.responseCode());
+				logger.warning("malShare returned: " + response.responseCode());
 			}
 		}
 		return false;

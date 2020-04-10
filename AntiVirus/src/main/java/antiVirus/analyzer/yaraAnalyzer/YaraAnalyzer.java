@@ -81,10 +81,11 @@ public class YaraAnalyzer implements FileAnalyzer {
 				if (isYaraRuleInBlackList(yara)) {
 					logger.info("yara found from blacklist: " + yara.getName());
 					return true;
-				} else {
+				} 
+				/*else {
 					logger.info("yara found: " + yara.getName());
 
-				}
+				}*/
 			}
 			if (yaraRuleFound >= 3) {
 				logger.info("third yara found");

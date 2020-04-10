@@ -1,5 +1,8 @@
 package antiVirus.controllers;
 
+import java.util.ArrayList;
+import java.util.Collection;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -17,6 +20,7 @@ import antiVirus.exceptions.AntiVirusUserException;
 import antiVirus.scanner.ScannerScheduler;
 import antiVirus.scanner.UserRequestScanner;
 import antiVirus.utils.Utils;
+import antlr.collections.List;
 
 @CrossOrigin
 @RestController
@@ -27,14 +31,34 @@ public class AntiVirusController {
 	@Autowired
 	private ScannerScheduler scannerScheduler;
 
-	@GetMapping("/initDirectoryPathScan")
+	@GetMapping("/userScan/initDirectoryPathScan")
 	public void setInitDirectoryPathScan(@RequestParam String path) throws AntiVirusUserException {
 		userRequestScanner.setInitDirectoryPath(path);
 	}
 
-	@GetMapping("/startUserScan")
+	@GetMapping("/userScan/start")
 	public void startUserScan() throws AntiVirusAnalyzeException, AntiVirusUserException {
 		userRequestScanner.startScan();
+	}
+	
+	@GetMapping("/userScan/virusFoundList")
+	public Collection<String> getUserScanVirusFoundList() {
+		return userRequestScanner.getAnalyzer().getVirusFoundList();
+	}
+	
+	@GetMapping("/userScan/virusSuspiciousList")
+	public Collection<String> getUserScanVirusSuspiciousList() {
+		return userRequestScanner.getAnalyzer().getVirusSuspiciousList();
+	}
+	
+	@GetMapping("/scheduleScan/virusFoundList")
+	public Collection<String> getScheduleScanVirusFoundList() {
+		return scannerScheduler.getAnalyzer().getVirusFoundList();
+	}
+	
+	@GetMapping("/scheduleScan/virusSuspiciousList")
+	public Collection<String> getScheduleScanVirusSuspiciousList() {
+		return scannerScheduler.getAnalyzer().getVirusSuspiciousList();
 	}
 
 	@GetMapping("/userScan/status")
@@ -47,13 +71,13 @@ public class AntiVirusController {
 		return scannerScheduler.isActiveScanning();
 	}
 	
-	@GetMapping(value = "/logUserScan", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+	@GetMapping(value = "/userScan/log", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
 	public @ResponseBody byte[] getLogUserScan() throws AntiVirusException {
 		String path = userRequestScanner.getLoggerPath();
 		return Utils.readByteArrayFromFile(path);
 	}
 	
-	@GetMapping(value = "/logScheduleScan", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+	@GetMapping(value = "/scheduleScan/log", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
 	public @ResponseBody byte[] getLogScheduleScan() throws AntiVirusException {
 		String path = scannerScheduler.getLoggerPath();
 		return Utils.readByteArrayFromFile(path);
