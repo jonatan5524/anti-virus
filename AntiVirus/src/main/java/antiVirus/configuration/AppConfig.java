@@ -47,6 +47,7 @@ public class AppConfig {
 	}
 
 	@Bean
+	@Scope("prototype")
 	public YaraAnalyzer yaraAnalyzer() {
 		return new YaraAnalyzer();
 	}

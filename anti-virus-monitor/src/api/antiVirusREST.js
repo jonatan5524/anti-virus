@@ -1,5 +1,4 @@
 import axios from "axios";
-import { userScanDone,scheduleScanDone } from "../components/App.js"
 
 const api = axios.create({
     baseURL: "http://localhost:4060"
@@ -39,8 +38,24 @@ export async function initDirectory(component, path, param) {
 export async function startUserScan(component, path) {
     try {
         await api.get(path);  
-        userScanDone=true;
     } catch (error) {
         component.setState({ error: error.response.data });
+    }
+};
+
+export async function getList(component, path) {
+    try {
+        const response = await api.get(path, { responseType: "json" });  
+        if (path.includes("virusFoundList")){
+            component.virusCount = response.data.length;
+            component.setState( {virusPathList: response.data} );
+        }
+        else {
+            component.suspiciousCount = response.data.length;
+            component.setState({ suspiciousPathList: response.data });
+        }
+
+    } catch (error) {
+        console.log(error );
     }
 };

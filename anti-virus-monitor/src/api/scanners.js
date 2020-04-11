@@ -2,18 +2,73 @@ import React from "react";
 import * as antiVirus from "./antiVirusREST.js";
 import "../components/App.css";
 
-const userScanDone = true;
-const scheduleScanDone = true;
+
+class ScanResult extends React.Component {
+    state = { virusPathList: [], suspiciousPathList: [] };
+    virusListGET = "/virusFoundList";
+    suspiciousListGET = "/virusSuspiciousList";
+    virusCount = 0 ;
+    suspiciousCount = 0;
+
+    componentDidMount() {
+       
+        antiVirus.getList(this, this.basePath + this.statusGetPath);
+        setInterval(() => antiVirus.getList(this, this.props.basePath + this.virusListGET), 800);
+        setInterval(() => antiVirus.getList(this, this.props.basePath + this.suspiciousListGET), 800);
+    }
+
+    listToli (list) {
+        return list.map( (path)=> {
+            return <li value="">{path}</li>
+        })
+    }
+
+    
+
+    render () {
+        const virusli = this.listToli(this.state.virusPathList);
+        const suspiciousli = this.listToli(this.state.suspiciousPathList);
+        return (
+            <div class="ui header resultScan" >
+                <ol class="ui list">
+                    <div class="ui inverted red segment ">
+                        <li value="">viruses found: { this.virusCount }</li>
+                    </div>
+                    <div class="ui secondary red segment">
+                        <ol>
+                            { virusli }
+                        </ol>
+                    </div>
+                </ol>       
+                <ol class="ui list">
+                    <div class="ui inverted yellow segment ">
+                        <li value="">suspicious viruses found: { this.suspiciousCount }</li>
+                    </div>
+                    <div class="ui secondary yellow segment">
+                        <ol>
+                            { suspiciousli }
+                        </ol>
+                    </div>
+                </ol>              
+            </div>
+        );
+    }
+}
+
 
 class Logger extends React.Component{
     logEnd = React.createRef();
     loggerGetPath = "/log";
     state = { data: "" };
-    autoScroll = true;
+    btnAutoScroll = true;
+    autoScoll = true;
+
     
 
     componentDidMount() {
+        window.onscroll = () => { this.autoScoll = false; };     
         antiVirus.getLogger(this, this.props.basePath + this.loggerGetPath);
+        setInterval( () => { this.autoScoll = (window.scrollY == 0 && this.btnAutoScroll) ? true : false });
         setInterval(() => antiVirus.getLogger(this, this.props.basePath + this.loggerGetPath), 800);
     } 
 
@@ -22,22 +77,26 @@ class Logger extends React.Component{
     }
 
     scrollToBottom = () => {
-        if(this.autoScroll){
-            this.logEnd.scrollIntoView({ behavior: "smooth" });
+        if(this.autoScoll){
+            this.logEnd.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' })
         }
     }
 
     render () {
         const data = this.state.data;
-        const buttonText = this.autoScroll ? "disable auto scroll" : "enable auto scroll";
+        const buttonText = this.btnAutoScroll ? "disable auto scroll" : "enable auto scroll";
         return (    
             <div>
-                <button class="ui button" onClick={ ()=> { this.autoScroll = !this.autoScroll}}> { buttonText }</button>
-                <div class="ui tertiary segment" id="log" >
-                    <p class="ui black"> {data} </p>
-                    <div style={{ float:"left", clear: "both" }}
-                        ref={(el) => { this.logEnd = el; }}>
+                <button class="ui button" onClick={ ()=> { this.btnAutoScroll = !this.btnAutoScroll}}> { buttonText }</button>
+                <br /><br />
+                <div>
+                    <div class="ui tertiary segment" id="log" >
+                        <p class="ui black"> {data} </p>
+                        <div class="log scroll" style={{ float:"left", clear: "both" }}
+                            ref={(el) => { this.logEnd = el; }}>
+                        </div>
                     </div>
+
                 </div>
             </div>
 
@@ -70,13 +129,19 @@ class Scanner extends React.Component {
             <div>
                 <h3 class={`ui large header green`}> Active </h3>
                 <Logger basePath={ this.basePath }/>
-                
+                <ScanResult basePath={ this.basePath }/>
+
             </div>
         );
     }
 
     notActiveScan(){
-        return <h3 class={`ui large header red`}> Not Active </h3>;
+        return (
+        <div>
+            <h3 class={`ui large header red`}> Not Active </h3>
+            <ScanResult basePath={ this.basePath }/>
+        </div>
+        );
     }
     
     render () {
@@ -157,38 +222,18 @@ class InitUserScan extends React.Component {
     }
 }
 
-class scanResult extends React.Component {
-    
-
-
-    render () {
-        return (
-            <div>
-
-            </div>
-        );
-    }
-}
-
 export class UserScan extends Scanner {
     scannerType = "User scan status:";
     basePath = "/userScan";
 
     notActiveScan () {
-        const superReturnVal = super.notActiveScan();
-        let elem = ""
-        if(this.userScanDone) {
-            elem =  <scanResult basePath={ this.basePath } />
-        }
-        else {
-            elem =  <InitUserScan basePath={ this.basePath } />
-        }
 
         return (
             <div>
                 <div>
-                    { superReturnVal }
-                    { elem }
+                    <h3 class={`ui large header red`}> Not Active </h3>
+                    <InitUserScan basePath={ this.basePath } /> 
+                    <ScanResult basePath={ this.basePath }/>
                 </div>
 
             </div>
