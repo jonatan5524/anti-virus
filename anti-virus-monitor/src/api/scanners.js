@@ -66,22 +66,22 @@ class Logger extends React.Component{
     
 
     componentDidMount() {
-        window.onscroll = () => { this.autoScoll = false; };     
+   //     window.onscroll = () => { this.autoScoll = false; };     
         antiVirus.getLogger(this, this.props.basePath + this.loggerGetPath);
-        setInterval( () => { this.autoScoll = (window.scrollY == 0 && this.btnAutoScroll) ? true : false });
+   //     setInterval( () => { this.autoScoll = (window.scrollY == 0 && this.btnAutoScroll) ? true : false });
         setInterval(() => antiVirus.getLogger(this, this.props.basePath + this.loggerGetPath), 800);
     } 
 
     componentDidUpdate() {
-        this.scrollToBottom();
+    //    this.scrollToBottom();
     }
-
+/*
     scrollToBottom = () => {
         if(this.autoScoll){
             this.logEnd.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' })
         }
     }
-
+*/
     render () {
         const data = this.state.data;
         const buttonText = this.btnAutoScroll ? "disable auto scroll" : "enable auto scroll";

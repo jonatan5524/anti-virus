@@ -27,11 +27,11 @@ export async function getLogger(component, path) {
 
 export async function initDirectory(component, path, param) {
     try {
-        const response = await api.get(path, { responseType: 'text', params: { path: param}});
+        await api.get(path, { responseType: 'text', params: { path: param}});
         component.setState({ validPath: "true" });
    
     } catch (error) {
-        component.setState({ error: error.response.data });
+        console.log(error.response);
     }
 };
 
@@ -39,7 +39,7 @@ export async function startUserScan(component, path) {
     try {
         await api.get(path);  
     } catch (error) {
-        component.setState({ error: error.response.data });
+        console.log(error.response);
     }
 };
 
