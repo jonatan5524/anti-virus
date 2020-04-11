@@ -27,16 +27,6 @@ public class AntiVirusApplication {
 
 		ApplicationContext ctx = SpringApplication.run(AntiVirusApplication.class, args);
 		ScannerScheduler scheduler = ctx.getBean(ScannerScheduler.class);
-		
-		UserRequestScanner user = ctx.getBean(UserRequestScanner.class);
-		/*
-		user.setInitDirectoryPath("C:\\Users\\jonat\\Desktop\\webserviceStatus\\server-monitor\\src");
-		try {
-			user.startScan();
-		} catch (AntiVirusAnalyzeException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		*/
+
 	}	
 }
