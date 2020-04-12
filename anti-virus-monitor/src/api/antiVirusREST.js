@@ -31,7 +31,7 @@ export async function initDirectory(component, path, param) {
         component.setState({ validPath: "true" });
    
     } catch (error) {
-        console.log(error.response);
+        component.setState({ validPath: "false", error: error.response.data });
     }
 };
 
