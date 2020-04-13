@@ -29,44 +29,14 @@ import antiVirus.scanner.fileFolderHandler.scanningAlgorithem.ScanningBFS;
 import lombok.Getter;
 
 @Component
-public class UserRequestScanner {
-
-	@Getter
-	private Logger logger;
-	
-	@Getter
-	private String loggerPath;
-
-	@Autowired
-	private ApplicationContext applicationContext;
-
-	@Autowired
-	private FileFolderScanner fileFolderScanner;
-
-	@Autowired
-	private TaskExecutor taskExecutor;
-
-	@Getter
-	private Analyzer analyzer;
-
-	// ranked from worst to best by time and performance
-	private Collection<FileAnalyzer> analyzeType;
+public class UserRequestScanner extends ScannerAnalyzerInitializer {
 
 	private String initDirectoryPath;
-	
-	@Getter
-	private boolean isActiveScanning;
 
 	public UserRequestScanner() {
-		analyzeType = new ArrayList<FileAnalyzer>();
+		super();
 		initDirectoryPath = "";
-		isActiveScanning = false;
-		logger = Logger.getLogger(UserRequestScanner.class.getName());
-		try {
-			loggerPath = loggerManager.setUpLogger(logger);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+
 	}
 
 	@PostConstruct
@@ -95,22 +65,11 @@ public class UserRequestScanner {
 		fileFolderScanner.setInitScanningDirectory(initDirectoryPath);
 	}
 
-	public void startScan() throws AntiVirusAnalyzeException, AntiVirusUserException {
+	public void startRequestedScan() throws AntiVirusAnalyzeException, AntiVirusUserException {
 		if (initDirectoryPath == "")
 			throw new AntiVirusUserException("init directory path is not set for user scan");
-		isActiveScanning = true;
 		logger.info("scan started at init scanning Directory: " + initDirectoryPath);
-		fileFolderScanner.setScanningMethod(new ScanningBFS<FolderDB>());
-		taskExecutor.execute(fileFolderScanner);
-
-		try {
-			Thread.sleep(50);
-			analyzer.analyzeFiles();
-		} catch (AntiVirusException | InterruptedException e) {
-			e.printStackTrace();
-		}
-		isActiveScanning = false;
-
+		super.startScan();
 	}
 
 }
