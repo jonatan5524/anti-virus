@@ -63,7 +63,7 @@ public class FileFolderScanner implements Runnable {
 	
 
 	@PostConstruct
-	public void initMessageDigest() throws AntiVirusException {
+	private void initMessageDigest() throws AntiVirusException {
 		try {
 			messageDigest = MessageDigest.getInstance(hashAlgorithm);
 		} catch (NoSuchAlgorithmException e) {
