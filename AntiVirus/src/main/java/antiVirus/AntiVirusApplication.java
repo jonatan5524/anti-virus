@@ -1,5 +1,10 @@
 package antiVirus;
 
+import java.awt.Desktop;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -27,6 +32,9 @@ public class AntiVirusApplication {
 
 		ApplicationContext ctx = SpringApplication.run(AntiVirusApplication.class, args);
 		ScannerScheduler scheduler = ctx.getBean(ScannerScheduler.class);
-
+		
+		System.out.println("web graphic interface available at http://localhost:4060/");
 	}	
+	
+
 }
