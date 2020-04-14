@@ -63,7 +63,6 @@ public class YaraAnalyzer implements FileAnalyzer {
 
 			pythonScriptPath = pythonTempFile.getPath();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			throw new AntiVirusYaraException("error loading python yara script from resources", e);
 		}
 
@@ -77,15 +76,12 @@ public class YaraAnalyzer implements FileAnalyzer {
 		for (Yara yara : yaraRules) {
 			if (executeScript(yara, file.getPath())) {
 				yaraRuleFound++;
-				// check if the found yara is in the blacklist
+
 				if (isYaraRuleInBlackList(yara)) {
 					logger.info("yara found from blacklist: " + yara.getName());
 					return true;
 				} 
-				/*else {
-					logger.info("yara found: " + yara.getName());
 
-				}*/
 			}
 			if (yaraRuleFound >= 3) {
 				logger.info("third yara found");
@@ -150,13 +146,9 @@ public class YaraAnalyzer implements FileAnalyzer {
 
 	@PostConstruct
 	private void initYaraRules() {
-		URL folderURL = YaraAnalyzer.class.getClassLoader().getResource("YaraRules");
-		//System.out.println("path " + folderURL);
 
-		//System.out.println("yara rules:");
 		for (Resource res : resourcesRules) {
 			try {
-			//	System.out.println(res);
 				addNewYara(res);
 			} catch (AntiVirusScanningException e) {
 				e.printStackTrace();
