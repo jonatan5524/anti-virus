@@ -28,7 +28,7 @@ public class Analyzer {
 	private Logger logger;
 
 	private FileFolderScanner fileFolderScanner;
-	
+
 	@Getter
 	private Collection<String> virusFoundList;
 	@Getter
@@ -49,11 +49,16 @@ public class Analyzer {
 		virusSuspiciousList = new ArrayList<String>();
 	}
 
+	private void emptyVirusesLists() {
+		virusFoundList.clear();
+		virusSuspiciousList.clear();
+	}
+
 	public void analyzeFiles() throws AntiVirusAnalyzeException {
 		if (analyzeType == null)
 			throw new AntiVirusAnalyzeException("analyzeType is not set before starting the analyze!");
 		this.initScanningDirectory = fileFolderScanner.getInitScanningDirectory();
-
+		emptyVirusesLists();
 		FileDB tempFileDB = null;
 
 		try {
@@ -67,6 +72,14 @@ public class Analyzer {
 				if (tempFileDB.getResultScan().getResult() == null) {
 					analyzeFileUpdateResultScan(tempFileDB);
 				}
+				else if(tempFileDB.getResultScan().getResult() == resultScanStatus.VIRUS)
+				{
+					virusFoundList.add(tempFileDB.getPath());
+				}
+				else if (tempFileDB.getResultScan().getResult() == resultScanStatus.SUSPICIOUS_VIRUS) {
+					virusSuspiciousList.add(tempFileDB.getPath());
+				}
+					
 				DBlist = waitForDbRepo(DBlist, i + 1);
 			}
 
@@ -89,8 +102,7 @@ public class Analyzer {
 		if (analyzeCounter >= 2) {
 			virusFoundList.add(tempFileDB.getPath());
 			logger.info("virus found!! " + tempFileDB.getPath());
-		}
-		else if(analyzeCounter == 1) {
+		} else if (analyzeCounter == 1) {
 			virusSuspiciousList.add(tempFileDB.getPath());
 		}
 	}
@@ -102,7 +114,7 @@ public class Analyzer {
 		for (FileAnalyzer analyzer : analyzeType) {
 			if ((analyzer instanceof VirusTotalAnalyzer) && analyzeCounter == 0)
 				break;
-			result = analyzer.scanFile(tempFileDB,logger);
+			result = analyzer.scanFile(tempFileDB, logger);
 			tempFileDB.getResultScan().getResultAnalyzer().put(analyzer, result);
 			analyzeCounter += result ? 1 : 0;
 			if (analyzeCounter == 2)
