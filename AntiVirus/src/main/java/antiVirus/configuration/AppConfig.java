@@ -1,5 +1,6 @@
 package antiVirus.configuration;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 import org.springframework.context.annotation.Bean;
@@ -7,19 +8,18 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-
-import antiVirus.AntiVirusApplication;
 import antiVirus.analyzer.Analyzer;
 import antiVirus.analyzer.FileAnalyzer;
 import antiVirus.analyzer.hashAnalyzer.MalShareAnalyzer;
 import antiVirus.analyzer.hashAnalyzer.VirusTotalAnalyzer;
+import antiVirus.analyzer.yaraAnalyzer.Yara;
 import antiVirus.analyzer.yaraAnalyzer.YaraAnalyzer;
-import antiVirus.exceptions.AntiVirusException;
 import antiVirus.scanner.ScannerScheduler;
 import antiVirus.scanner.UserRequestScanner;
 import antiVirus.scanner.fileFolderHandler.FileFolderScanner;
 import antiVirus.scanner.fileFolderHandler.scanningAlgorithem.ScanningAlgorithm;
 import antiVirus.scanner.fileFolderHandler.scanningAlgorithem.ScanningBFS;
+
 
 @Configuration
 public class AppConfig {
@@ -32,29 +32,19 @@ public class AppConfig {
 
 	@Bean
 	@Scope("prototype")
-	public Analyzer analyzer(FileFolderScanner fileFolderScanner,Collection<FileAnalyzer> analyzeType) {
-		return new Analyzer(fileFolderScanner,analyzeType);
+	public Analyzer analyzer(FileFolderScanner fileFolderScanner, Collection<FileAnalyzer> analyzeType) {
+		return new Analyzer(fileFolderScanner, analyzeType);
 	}
-	
+
 	@Bean
 	public UserRequestScanner userRequestScanner() {
 		return new UserRequestScanner();
-	}
-	
-	@Bean
-	public MalShareAnalyzer malShareAnalyzer() {
-		return new MalShareAnalyzer(null, null);
 	}
 
 	@Bean
 	@Scope("prototype")
 	public YaraAnalyzer yaraAnalyzer() {
 		return new YaraAnalyzer();
-	}
-
-	@Bean
-	public VirusTotalAnalyzer virusTotalAnalyzer() {
-		return new VirusTotalAnalyzer(null, null);
 	}
 
 	@Bean
@@ -72,10 +62,30 @@ public class AppConfig {
 	@Bean
 	public TaskExecutor taskExecutor() {
 		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-		executor.setCorePoolSize(100);
-		executor.setMaxPoolSize(100);
 		executor.initialize();
 
 		return executor;
+	}
+	
+	@Bean("userAnalyzeTypeList")
+	public Collection<FileAnalyzer> userAnalyzeTypeList(YaraAnalyzer yara,MalShareAnalyzer malShare, VirusTotalAnalyzer virusTotal){
+		Collection<FileAnalyzer> list = new ArrayList<FileAnalyzer>();
+		
+		list.add(yara);
+		list.add(malShare);
+		list.add(virusTotal);
+
+		return list;
+	}
+	
+	@Bean("scannerSchedulerAnalyzeTypeList")
+	public Collection<FileAnalyzer> scannerSchedulerAnalyzeTypeList(YaraAnalyzer yara,MalShareAnalyzer malShare, VirusTotalAnalyzer virusTotal){
+		Collection<FileAnalyzer> list = new ArrayList<FileAnalyzer>();
+		
+		list.add(yara);
+		list.add(malShare);
+		list.add(virusTotal);
+
+		return list;
 	}
 }

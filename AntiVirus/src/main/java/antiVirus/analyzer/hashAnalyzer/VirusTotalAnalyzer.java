@@ -6,6 +6,7 @@ import javax.annotation.PostConstruct;
 
 import org.javalite.http.Get;
 import org.javalite.http.Http;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -18,16 +19,18 @@ public class VirusTotalAnalyzer extends HashAnalyzer {
 
 	private Gson gson;
 
-	public VirusTotalAnalyzer(@Value("{virus-total.VT_URL}")String URL,@Value("${virus-total.API_KEY}") String API_KEY) {
+	@Autowired
+	public VirusTotalAnalyzer(@Value("{virus-total.VT_URL}") String URL,
+			@Value("${virus-total.API_KEY}") String API_KEY) {
 		this.gson = new Gson();
-		this.URL=URL;
-		this.API_KEY=API_KEY;
+		this.URL = URL;
+		this.API_KEY = API_KEY;
 	}
 
 	@PostConstruct
 	protected void setURI() {
 		super.setURI();
-		this.URI =  "&resource=";
+		this.URI = "&resource=";
 	}
 
 	@Override
@@ -42,7 +45,7 @@ public class VirusTotalAnalyzer extends HashAnalyzer {
 				return true;
 			}
 		} else {
-			logger.warning("virusTotal returned: " + response.responseCode());
+			logger.warning("virusTotal returned: " + response.text());
 		}
 		return false;
 	}

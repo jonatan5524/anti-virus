@@ -42,11 +42,7 @@ public abstract class ScannerAnalyzerInitializer {
 	@Getter
 	protected boolean isActiveScanning;
 	
-	// ranked from worst to best by time and performance
-	protected Collection<FileAnalyzer> analyzeType;
-	
 	public ScannerAnalyzerInitializer() {
-		analyzeType = new ArrayList<FileAnalyzer>();
 		logger = Logger.getLogger(ScannerScheduler.class.getName());
 		isActiveScanning = false;
 		try {
@@ -63,7 +59,9 @@ public abstract class ScannerAnalyzerInitializer {
 		taskExecutor.execute(fileFolderScanner);
 
 		try {
+
 			Thread.sleep(50);
+			
 			analyzer.startAnalyzingFiles();
 		} catch (AntiVirusException | InterruptedException e) {
 			e.printStackTrace();

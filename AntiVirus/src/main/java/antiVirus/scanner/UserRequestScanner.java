@@ -8,6 +8,7 @@ import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -32,7 +33,11 @@ import lombok.Getter;
 public class UserRequestScanner extends ScannerAnalyzerInitializer {
 
 	private String initDirectoryPath;
-
+	@Autowired
+	@Qualifier("userAnalyzeTypeList")
+	// ranked from worst to best by time and performance
+	private Collection<FileAnalyzer> analyzeTypeList;
+	
 	public UserRequestScanner() {
 		super();
 		initDirectoryPath = "";
@@ -41,13 +46,7 @@ public class UserRequestScanner extends ScannerAnalyzerInitializer {
 
 	@PostConstruct
 	private void onStartUp() {
-		analyzeType.add(applicationContext.getBean(YaraAnalyzer.class));
-		logger.info("analyzeType: Yara analyzer");
-		analyzeType.add(applicationContext.getBean(MalShareAnalyzer.class));
-		logger.info("analyzeType: MalShare analyzer");
-		analyzeType.add(applicationContext.getBean(VirusTotalAnalyzer.class));
-		logger.info("analyzeType: VirusTotal analyzer");
-		analyzer = applicationContext.getBean(Analyzer.class, fileFolderScanner, analyzeType);
+		analyzer = applicationContext.getBean(Analyzer.class, fileFolderScanner, analyzeTypeList);
 		analyzer.setLogger(logger);
 	}
 

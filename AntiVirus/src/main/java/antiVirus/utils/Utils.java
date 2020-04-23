@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.security.MessageDigest;
 
 import org.apache.commons.io.IOUtils;
+import org.springframework.beans.factory.annotation.Value;
 
 import antiVirus.exceptions.AntiVirusException;
 
@@ -15,6 +16,9 @@ public class Utils {
 
 	private static final int RADIX = 16;
 	private static String OS = System.getProperty("os.name").toLowerCase();
+	
+	@Value("${Utils.readByteChunkLength}")
+	private static int readByteChunkLength;
 
 	public static String getFileChecksum(MessageDigest digest, File file) {
 		try {
@@ -36,7 +40,8 @@ public class Utils {
 
 	private static byte[] readByteFromFileHash(MessageDigest digest, File file) throws IOException {
 		FileInputStream fis = new FileInputStream(file);
-		byte[] byteArray = new byte[(int) file.length()];
+		byte[] byteArray = new byte[readByteChunkLength];
+
 		int bytesCount = 0;
 
 		while ((bytesCount = fis.read(byteArray)) != -1) {

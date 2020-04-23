@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.Scanner;
 import java.util.logging.Logger;
 
@@ -62,19 +63,20 @@ public class Analyzer {
 	public void startAnalyzingFiles() throws AntiVirusAnalyzeException {
 		if (analyzeTypeList == null)
 			throw new AntiVirusAnalyzeException("analyzeType is not set before starting the analyze!");
+		
 		this.initScanningDirectory = fileFolderScanner.getInitScanningDirectory();
 		emptyVirusesLists();
 		FileDB tempFileDB = null;
 
 		try {
 			List<FileDB> DBlist = getDBListFromRepo();
-
+			
 			DBlist = waitForDbRepo(DBlist, 0);
-
+			
 			for (int i = 0; fileFolderScanner.isFileFolderScannerActive() || i < DBlist.size(); i++) {
 
 				tempFileDB = DBlist.get(i);
-
+				
 				runOnDbRepositoryFileAndAnalyze(tempFileDB);
 					
 				DBlist = waitForDbRepo(DBlist, i + 1);
@@ -86,14 +88,16 @@ public class Analyzer {
 	}
 
 	private void runOnDbRepositoryFileAndAnalyze(FileDB tempFileDB) throws AntiVirusException {
-		if (tempFileDB.getResultScan().getResult() == null) {
+		logger.info("analyzing file: " + tempFileDB.getPath());
+		Optional<resultScanStatus> resultScanStatusOptinal = Optional.of(tempFileDB.getResultScan().getResult());
+		if (!resultScanStatusOptinal.isPresent()) {
 			analyzeFileUpdateResultScan(tempFileDB);
 		}
-		else if(tempFileDB.getResultScan().getResult() == resultScanStatus.VIRUS)
+		else if(resultScanStatusOptinal.get() == resultScanStatus.VIRUS)
 		{
 			virusFoundList.add(tempFileDB.getPath());
 		}
-		else if (tempFileDB.getResultScan().getResult() == resultScanStatus.SUSPICIOUS_VIRUS) {
+		else if (resultScanStatusOptinal.get() == resultScanStatus.SUSPICIOUS_VIRUS) {
 			virusSuspiciousList.add(tempFileDB.getPath());
 		}
 	}
@@ -120,7 +124,7 @@ public class Analyzer {
 	private int analyzeSingleFile(FileDB tempFileDB) throws AntiVirusException {
 		int analyzeCounter = 0;
 		boolean result;
-		logger.info("analyzing file: " + tempFileDB.getPath());
+		
 		for (FileAnalyzer analyzer : analyzeTypeList) {
 			if ((analyzer instanceof VirusTotalAnalyzer) && analyzeCounter == 0)
 				return analyzeCounter;

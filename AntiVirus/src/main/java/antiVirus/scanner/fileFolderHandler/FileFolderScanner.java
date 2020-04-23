@@ -12,6 +12,7 @@ import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
+import java.util.Optional;
 
 import javax.annotation.PostConstruct;
 
@@ -79,9 +80,11 @@ public class FileFolderScanner implements Runnable {
 		while (!scanningMethod.isEmpty()) {
 
 			parentDirectoryDB = scanningMethod.remove();
-			File[] files = new File(parentDirectoryDB.getPath()).listFiles();
-			if (files != null) {
-				scanFilesInDir(files);
+			//File[] files = new File(parentDirectoryDB.getPath()).listFiles();
+			Optional<File[]> files = Optional.of(new File(parentDirectoryDB.getPath()).listFiles());
+			
+			if (files.isPresent()) {
+				scanFilesInDir(files.get());
 			}
 		}
 	}
@@ -107,6 +110,7 @@ public class FileFolderScanner implements Runnable {
 	
 	private void changeFileHash(File file)
 	{
+
 		FileDB fileDBTemp = fileRepo.findByPath(file.getPath());		
 		String newHash = Utils.getFileChecksum(messageDigest, file);
 		if(!newHash.contentEquals(fileDBTemp.getHash()))
@@ -121,13 +125,13 @@ public class FileFolderScanner implements Runnable {
 	}
 
 	private void insertFileToDB(File file) throws AntiVirusException {
-
+		
 		ResultScan resultScanTemp = new ResultScan();
 		resultScanTemp.setResult(null);
 		resultScanTemp.setResultAnalyzer(new HashMap<FileAnalyzer, Boolean>());
 
 		resultScanTemp.serializeResultAnalyzer();
-
+		
 		FileDB fileTemp = new FileDB(Utils.getFileChecksum(messageDigest, file), file.getName(), file.getPath());
 		resultScanTemp.setFiledb(fileTemp);
 

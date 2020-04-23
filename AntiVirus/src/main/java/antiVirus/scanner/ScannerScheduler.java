@@ -6,6 +6,9 @@ import java.util.Collection;
 import java.util.logging.Logger;
 
 import javax.annotation.PostConstruct;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -24,15 +27,14 @@ import antiVirus.scanner.fileFolderHandler.scanningAlgorithem.ScanningBFS;
 @Component
 public class ScannerScheduler extends ScannerAnalyzerInitializer{
 	
+	@Autowired
+	@Qualifier("scannerSchedulerAnalyzeTypeList")
+	// ranked from worst to best by time and performance
+	private Collection<FileAnalyzer> analyzeTypeList;
+	
 	@PostConstruct
 	private void onStartUp() {
-		analyzeType.add(applicationContext.getBean(YaraAnalyzer.class));
-		logger.info("analyzeType: Yara analyzer");
-		analyzeType.add(applicationContext.getBean(MalShareAnalyzer.class));
-		logger.info("analyzeType: MalShare analyzer");
-		analyzeType.add(applicationContext.getBean(VirusTotalAnalyzer.class));
-		logger.info("analyzeType: VirusTotal analyzer");
-		analyzer = applicationContext.getBean(Analyzer.class, fileFolderScanner, analyzeType);
+		analyzer = applicationContext.getBean(Analyzer.class, fileFolderScanner, analyzeTypeList);
 		analyzer.setLogger(logger);
 	}
 
