@@ -64,7 +64,7 @@ public abstract class ScannerAnalyzerInitializer {
 
 		try {
 			Thread.sleep(50);
-			analyzer.analyzeFiles();
+			analyzer.startAnalyzingFiles();
 		} catch (AntiVirusException | InterruptedException e) {
 			e.printStackTrace();
 		}

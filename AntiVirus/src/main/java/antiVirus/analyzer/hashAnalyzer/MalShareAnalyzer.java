@@ -15,34 +15,31 @@ import antiVirus.entities.FileDB;
 
 
 @Service
-public class MalShareAnalyzer implements HashAnalyzer {
+public class MalShareAnalyzer extends HashAnalyzer {
 
-	@Value("${MalShare.API_KEY}")
-	private String API_KEY;
-	@Value("${MalShare.URL}")
-	private String MS_URL;
-	private String MS_URI;
-
+	public MalShareAnalyzer(@Value("${MalShare.API_KEY}") String API_KEY,@Value("${MalShare.URL}") String URL) {
+		this.API_KEY=API_KEY;
+		this.URL=URL;
+	}
+	
 	@PostConstruct
-	private void setURI() {
-		this.MS_URI = MS_URL + "?api_key=" + API_KEY + "&action=details&hash=";
+	protected void setURI() {
+		super.setURI();
+		this.URI += "&action=details&hash=";
 	}
 
 	@Override
-	public boolean scanFile(FileDB file,Logger logger) {
-		if (!file.getHash().isEmpty()) {
-			logger.info("analyzing file - MalShareAnalyzer: " + file.getPath());
-			Get response = Http.get(MS_URI + file.getHash());
+	public boolean parseResponse(Get response,Logger logger,FileDB file) {
+		logger.info("analyzing file - MalShareAnalyzer: " + file.getPath());
+		if (response.responseCode() == 200) {
+			logger.info("found MalShareAnalyzer: " + file.getPath());
+			return true;
 
-			if (response.responseCode() == 200) {
-				logger.info("found MalShareAnalyzer: " + file.getPath());
-				return true;
-
-			}else if(response.responseCode() != 404) {
-				logger.warning("malShare returned: " + response.responseCode());
-			}
+		}else {
+			logger.warning("malShare returned: " + response.responseCode());
 		}
 		return false;
 	}
+
 
 }

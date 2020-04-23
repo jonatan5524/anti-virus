@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import antiVirus.analyzer.FileAnalyzer;
 import antiVirus.entities.FileDB;
+import antiVirus.exceptions.AntiVirusException;
 import antiVirus.exceptions.AntiVirusScanningException;
 import antiVirus.exceptions.AntiVirusYaraException;
 import lombok.ToString;
@@ -44,20 +45,18 @@ public class YaraAnalyzer implements FileAnalyzer {
 	@Value("classpath:YaraRules/*/*.yar")
 	private Resource[] resourcesRules;
 
+	@Value("${yara.maxYaraFoundHit}")
+	private int maxYaraFoundHit;
+	
 	public YaraAnalyzer() {
 		yaraRules = new ArrayList<Yara>();
 
 	}
 
 	@PostConstruct
-	private void initPath() throws AntiVirusYaraException {
-		try {
-			Runtime rt = Runtime.getRuntime();
-			Process proc = rt.exec(pythonCommand);
-		} catch (IOException e) {
-			pythonCommand = "py";
-		}
-
+	private void initPath() throws AntiVirusException {
+		checkIfPythonInstalled();
+		
 		try {
 			File pythonTempFile = creatingTempFile(resourcePythonScript);
 
@@ -66,6 +65,11 @@ public class YaraAnalyzer implements FileAnalyzer {
 			throw new AntiVirusYaraException("error loading python yara script from resources", e);
 		}
 
+	}
+	
+	public void checkIfPythonInstalled() throws AntiVirusException {
+		if(!System.getenv("PATH").contains("Python"))
+			throw new AntiVirusException("python is not installed!");
 	}
 
 	@Override
@@ -83,7 +87,7 @@ public class YaraAnalyzer implements FileAnalyzer {
 				} 
 
 			}
-			if (yaraRuleFound >= 3) {
+			if (yaraRuleFound >= maxYaraFoundHit) {
 				logger.info("third yara found");
 				return true;
 			}

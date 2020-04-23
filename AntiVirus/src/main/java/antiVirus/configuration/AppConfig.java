@@ -43,7 +43,7 @@ public class AppConfig {
 	
 	@Bean
 	public MalShareAnalyzer malShareAnalyzer() {
-		return new MalShareAnalyzer();
+		return new MalShareAnalyzer(null, null);
 	}
 
 	@Bean
@@ -54,7 +54,7 @@ public class AppConfig {
 
 	@Bean
 	public VirusTotalAnalyzer virusTotalAnalyzer() {
-		return new VirusTotalAnalyzer();
+		return new VirusTotalAnalyzer(null, null);
 	}
 
 	@Bean
