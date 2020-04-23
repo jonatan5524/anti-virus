@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
 import java.security.MessageDigest;
 
 import org.apache.commons.io.IOUtils;
@@ -88,6 +89,17 @@ public class Utils {
 
 		return (OS.indexOf("nix") >= 0 || OS.indexOf("nux") >= 0 || OS.indexOf("aix") > 0);
 
+	}
+	
+	public static void emptyFile(String path) throws AntiVirusException {
+		PrintWriter writer;
+		try {
+			writer = new PrintWriter(new File(path));
+			writer.print("");
+			writer.close();
+		} catch (FileNotFoundException e) {
+			throw new AntiVirusException("unable to delete log file: "+path,e);
+		}
 	}
 
 

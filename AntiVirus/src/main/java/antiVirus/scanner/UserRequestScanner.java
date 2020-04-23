@@ -27,6 +27,7 @@ import antiVirus.exceptions.AntiVirusUserException;
 import antiVirus.logger.loggerManager;
 import antiVirus.scanner.fileFolderHandler.FileFolderScanner;
 import antiVirus.scanner.fileFolderHandler.scanningAlgorithem.ScanningBFS;
+import antiVirus.utils.Utils;
 import lombok.Getter;
 
 @Component
@@ -64,9 +65,10 @@ public class UserRequestScanner extends ScannerAnalyzerInitializer {
 		fileFolderScanner.setInitScanningDirectory(initDirectoryPath);
 	}
 
-	public void startRequestedScan() throws AntiVirusAnalyzeException, AntiVirusUserException {
+	public void startRequestedScan() throws AntiVirusException {
 		if (initDirectoryPath == "")
 			throw new AntiVirusUserException("init directory path is not set for user scan");
+		Utils.emptyFile(loggerPath);
 		logger.info("scan started at init scanning Directory: " + initDirectoryPath);
 		super.startScan();
 	}

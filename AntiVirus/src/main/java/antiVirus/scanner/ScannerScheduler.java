@@ -22,6 +22,7 @@ import antiVirus.entities.FolderDB;
 import antiVirus.exceptions.AntiVirusException;
 import antiVirus.logger.loggerManager;
 import antiVirus.scanner.fileFolderHandler.scanningAlgorithem.ScanningBFS;
+import antiVirus.utils.Utils;
 
 
 @Component
@@ -43,9 +44,10 @@ public class ScannerScheduler extends ScannerAnalyzerInitializer{
 	}
 
 	@Scheduled(cron = "${scanner.scheduler.cron}")
-	private void scheludeScan() {
+	private void scheludeScan() throws AntiVirusException {
 		
 		if (!fileFolderScanner.isFileFolderScannerActive()) {
+			Utils.emptyFile(loggerPath);
 			logger.info("scedule scan started!");
 			super.startScan();
 		}
