@@ -17,21 +17,24 @@ public class Utils {
 	private static final int RADIX = 16;
 	private static String OS = System.getProperty("os.name").toLowerCase();
 	
-	@Value("${Utils.readByteChunkLength}")
-	private static int readByteChunkLength;
+	private static final int READ_BYTE_CHUNK_READ = 1024*1024;
 
 	public static String getFileChecksum(MessageDigest digest, File file) {
 		try {
+
 			if (file.length() == 0) {
 				return "";
 			}
+
 			byte[] bytes = readByteFromFileHash(digest, file);
+
 			// This bytes[] has bytes in decimal format;
 			// Convert it to hexadecimal format
 			StringBuilder sb = new StringBuilder();
 			for (int i = 0; i < bytes.length; i++) {
 				sb.append(Integer.toString((bytes[i] & 0xff) + 0x100, RADIX).substring(1));
 			}
+			
 			return sb.toString();
 		} catch (IOException e) {
 			return "";
@@ -40,10 +43,16 @@ public class Utils {
 
 	private static byte[] readByteFromFileHash(MessageDigest digest, File file) throws IOException {
 		FileInputStream fis = new FileInputStream(file);
-		byte[] byteArray = new byte[readByteChunkLength];
+		byte[] byteArray;
+		if(file.length() > READ_BYTE_CHUNK_READ) {
+			byteArray = new byte[READ_BYTE_CHUNK_READ];
+		}
+		else {
+			byteArray = new byte[(int) file.length()];
+		}
+			
 
 		int bytesCount = 0;
-
 		while ((bytesCount = fis.read(byteArray)) != -1) {
 			digest.update(byteArray, 0, bytesCount);
 		}

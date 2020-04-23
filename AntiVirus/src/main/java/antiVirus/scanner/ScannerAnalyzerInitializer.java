@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.logging.Logger;
 
+import javax.annotation.PostConstruct;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.task.TaskExecutor;
@@ -43,8 +45,11 @@ public abstract class ScannerAnalyzerInitializer {
 	protected boolean isActiveScanning;
 	
 	public ScannerAnalyzerInitializer() {
-		logger = Logger.getLogger(ScannerScheduler.class.getName());
 		isActiveScanning = false;
+	}
+	
+	@PostConstruct
+	private void setUpLogFile() {
 		try {
 			loggerPath = loggerManager.setUpLogger(logger);
 		} catch (IOException e) {
@@ -55,13 +60,14 @@ public abstract class ScannerAnalyzerInitializer {
 	public void startScan()
 	{
 		isActiveScanning = true;
+
 		fileFolderScanner.setScanningMethod(new ScanningBFS<FolderDB>());
 		taskExecutor.execute(fileFolderScanner);
 
 		try {
 
 			Thread.sleep(50);
-			
+
 			analyzer.startAnalyzingFiles();
 		} catch (AntiVirusException | InterruptedException e) {
 			e.printStackTrace();

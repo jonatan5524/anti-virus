@@ -32,6 +32,10 @@ public class ScannerScheduler extends ScannerAnalyzerInitializer{
 	// ranked from worst to best by time and performance
 	private Collection<FileAnalyzer> analyzeTypeList;
 	
+	public ScannerScheduler() {
+		logger = Logger.getLogger(ScannerScheduler.class.getName());
+	}
+	
 	@PostConstruct
 	private void onStartUp() {
 		analyzer = applicationContext.getBean(Analyzer.class, fileFolderScanner, analyzeTypeList);

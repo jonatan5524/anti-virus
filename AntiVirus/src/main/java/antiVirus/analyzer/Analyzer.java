@@ -61,9 +61,6 @@ public class Analyzer {
 	}
 
 	public void startAnalyzingFiles() throws AntiVirusAnalyzeException {
-		if (analyzeTypeList == null)
-			throw new AntiVirusAnalyzeException("analyzeType is not set before starting the analyze!");
-		
 		this.initScanningDirectory = fileFolderScanner.getInitScanningDirectory();
 		emptyVirusesLists();
 		FileDB tempFileDB = null;
@@ -89,7 +86,7 @@ public class Analyzer {
 
 	private void runOnDbRepositoryFileAndAnalyze(FileDB tempFileDB) throws AntiVirusException {
 		logger.info("analyzing file: " + tempFileDB.getPath());
-		Optional<resultScanStatus> resultScanStatusOptinal = Optional.of(tempFileDB.getResultScan().getResult());
+		Optional<resultScanStatus> resultScanStatusOptinal = Optional.ofNullable(tempFileDB.getResultScan().getResult());
 		if (!resultScanStatusOptinal.isPresent()) {
 			analyzeFileUpdateResultScan(tempFileDB);
 		}
@@ -130,7 +127,9 @@ public class Analyzer {
 				return analyzeCounter;
 			result = analyzer.scanFile(tempFileDB, logger);
 			tempFileDB.getResultScan().getResultAnalyzer().put(analyzer, result);
+
 			analyzeCounter += result ? 1 : 0;
+
 			if (analyzeCounter == virusCountLimit)
 				return analyzeCounter;
 		}

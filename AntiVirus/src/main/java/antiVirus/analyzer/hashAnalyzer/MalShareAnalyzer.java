@@ -29,9 +29,19 @@ public class MalShareAnalyzer extends HashAnalyzer {
 		this.URI += "&action=details&hash=";
 	}
 
+	public boolean scanFile(FileDB file,Logger logger) {
+		if (!file.getHash().isEmpty()) {
+			logger.info("analyzing file - MalShareAnalyzer: " + file.getPath());
+			Get response = Http.get(URI + file.getHash());
+
+			return parseResponse(response,logger,file);
+		}
+		return false;
+	}
+	
 	@Override
 	public boolean parseResponse(Get response, Logger logger, FileDB file) {
-		logger.info("analyzing file - MalShareAnalyzer: " + file.getPath());
+		
 		if (response.responseCode() == 200) {
 			logger.info("found MalShareAnalyzer: " + file.getPath());
 			return true;

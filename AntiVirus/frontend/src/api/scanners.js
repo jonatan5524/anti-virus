@@ -73,17 +73,11 @@ class Logger extends React.Component{
 
     render () {
         const data = this.state.data;
-        const buttonText = this.btnAutoScroll ? "disable auto scroll" : "enable auto scroll";
         return (    
             <div>
-                <button class="ui button" onClick={ ()=> { this.btnAutoScroll = !this.btnAutoScroll}}> { buttonText }</button>
-                <br /><br />
                 <div>
                     <div class="ui tertiary segment" id="log" >
                         <p class="ui black"> {data} </p>
-                        <div class="log scroll" style={{ float:"left", clear: "both" }}
-                            ref={(el) => { this.logEnd = el; }}>
-                        </div>
                     </div>
 
                 </div>
@@ -117,9 +111,6 @@ class Scanner extends React.Component {
         return (
             <div>
                 <h3 class={`ui large header green`}> Active </h3>
-                <Logger basePath={ this.basePath }/>
-                <ScanResult basePath={ this.basePath }/>
-
             </div>
         );
     }
@@ -128,7 +119,6 @@ class Scanner extends React.Component {
         return (
         <div>
             <h3 class={`ui large header red`}> Not Active </h3>
-            <ScanResult basePath={ this.basePath }/>
         </div>
         );
     }
@@ -139,6 +129,8 @@ class Scanner extends React.Component {
             <div>
                 <h3 class="ui large dividing header"> { this.scannerType } </h3>
                 { activeHeader }
+                <Logger basePath={ this.basePath }/>
+                <ScanResult basePath={ this.basePath }/>
             </div>
 
         );
@@ -222,7 +214,6 @@ export class UserScan extends Scanner {
                 <div>
                     <h3 class={`ui large header red`}> Not Active </h3>
                     <InitUserScan basePath={ this.basePath } /> 
-                    <ScanResult basePath={ this.basePath }/>
                 </div>
 
             </div>

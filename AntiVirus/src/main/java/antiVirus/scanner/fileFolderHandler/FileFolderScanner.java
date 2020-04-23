@@ -80,8 +80,8 @@ public class FileFolderScanner implements Runnable {
 		while (!scanningMethod.isEmpty()) {
 
 			parentDirectoryDB = scanningMethod.remove();
-			//File[] files = new File(parentDirectoryDB.getPath()).listFiles();
-			Optional<File[]> files = Optional.of(new File(parentDirectoryDB.getPath()).listFiles());
+
+			Optional<File[]> files = Optional.ofNullable(new File(parentDirectoryDB.getPath()).listFiles());
 			
 			if (files.isPresent()) {
 				scanFilesInDir(files.get());

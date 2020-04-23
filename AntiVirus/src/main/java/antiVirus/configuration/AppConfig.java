@@ -2,6 +2,7 @@ package antiVirus.configuration;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.logging.Logger;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -62,10 +63,13 @@ public class AppConfig {
 	@Bean
 	public TaskExecutor taskExecutor() {
 		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+		executor.setCorePoolSize(100);
+		executor.setMaxPoolSize(100);
 		executor.initialize();
-
+		
 		return executor;
 	}
+
 	
 	@Bean("userAnalyzeTypeList")
 	public Collection<FileAnalyzer> userAnalyzeTypeList(YaraAnalyzer yara,MalShareAnalyzer malShare, VirusTotalAnalyzer virusTotal){

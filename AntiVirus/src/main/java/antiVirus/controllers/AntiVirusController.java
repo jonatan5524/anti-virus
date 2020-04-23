@@ -38,7 +38,7 @@ public class AntiVirusController {
 
 	@GetMapping("/userScan/start")
 	public void startUserScan() throws AntiVirusAnalyzeException, AntiVirusUserException {
-		userRequestScanner.startScan();
+		userRequestScanner.startRequestedScan();
 	}
 	
 	@GetMapping("/userScan/virusFoundList")

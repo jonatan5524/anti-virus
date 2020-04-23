@@ -39,8 +39,8 @@ public class UserRequestScanner extends ScannerAnalyzerInitializer {
 	private Collection<FileAnalyzer> analyzeTypeList;
 	
 	public UserRequestScanner() {
-		super();
 		initDirectoryPath = "";
+		logger = Logger.getLogger(UserRequestScanner.class.getName());
 
 	}
 
