@@ -176,6 +176,7 @@ class InitUserScan extends React.Component {
     }
 
     startScan() {
+        this.state.validPath = "false"
         antiVirus.startUserScan(this, this.props.basePath + this.startScanGetPath);
     }
 
