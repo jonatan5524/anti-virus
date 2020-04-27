@@ -23,6 +23,7 @@ import antiVirus.entities.FileDB;
 import antiVirus.exceptions.AntiVirusException;
 import antiVirus.exceptions.AntiVirusScanningException;
 import antiVirus.exceptions.AntiVirusYaraException;
+import antiVirus.utils.Utils;
 import lombok.ToString;
 
 @Service
@@ -55,7 +56,7 @@ public class YaraAnalyzer implements FileAnalyzer {
 
 	@PostConstruct
 	private void initPath() throws AntiVirusException {
-		checkIfPythonInstalled();
+		Utils.isPythonInstalled();
 		
 		try {
 			File pythonTempFile = creatingTempFile(resourcePythonScript);
@@ -67,10 +68,6 @@ public class YaraAnalyzer implements FileAnalyzer {
 
 	}
 	
-	public void checkIfPythonInstalled() throws AntiVirusException {
-		if(!System.getenv("PATH").contains("Python"))
-			throw new AntiVirusException("python is not installed!");
-	}
 
 	@Override
 	public boolean scanFile(FileDB file,Logger logger) throws AntiVirusYaraException {
@@ -125,13 +122,9 @@ public class YaraAnalyzer implements FileAnalyzer {
 		String output, outputTot = "";
 		String error, errorTot = "";
 		try {
-			while ((output = stdInput.readLine()) != null) {
-				outputTot += output;
-			}
+			Utils.readFromProcess(stdInput);
 
-			while ((error = stdError.readLine()) != null) {
-				errorTot += error;
-			}
+			Utils.readFromProcess(stdError);
 		} catch (IOException e) {
 
 			throw new AntiVirusYaraException("exception reading from executable script", e);
