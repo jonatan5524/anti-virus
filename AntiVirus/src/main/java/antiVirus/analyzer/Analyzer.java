@@ -108,10 +108,10 @@ public class Analyzer {
 		tempFileDB.getResultScan().setResult(resultScanStatus.values()[analyzeCounter]);
 
 		fileFolderScanner.getFileRepo().save(tempFileDB);
-		if (analyzeCounter >= suspiciousVirusCountLimit) {
+		if (analyzeCounter >= virusCountLimit) {
 			virusFoundList.add(tempFileDB.getPath());
 			logger.info("virus found!! " + tempFileDB.getPath());
-		} else if (analyzeCounter == virusCountLimit) {
+		} else if (analyzeCounter == suspiciousVirusCountLimit) {
 			virusSuspiciousList.add(tempFileDB.getPath());
 		}
 	}
