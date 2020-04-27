@@ -1,9 +1,11 @@
 package antiVirus.configuration;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.logging.Logger;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
@@ -21,14 +23,32 @@ import antiVirus.scanner.fileFolderHandler.FileFolderScanner;
 import antiVirus.scanner.fileFolderHandler.scanningAlgorithem.ScanningAlgorithm;
 import antiVirus.scanner.fileFolderHandler.scanningAlgorithem.ScanningBFS;
 
-
 @Configuration
 public class AppConfig {
 
-	// Default Method: BFS, can be changed using Set method
-	@Bean
-	public ScanningAlgorithm scanningAlgorithemTemplate() {
-		return new ScanningBFS();
+	@Value("${config.corePoolSize}")
+	private int corePoolSize;
+	@Value("${config.maxPoolSize}")
+	private int maxPoolSize;
+
+	@Bean("ScanningAlgorithmBFS")
+	@Scope("prototype")
+	public ScanningAlgorithm<File> scanningAlgorithemTemplateBFS() {
+		return new ScanningBFS<File>();
+	}
+
+	@Bean("ScanningAlgorithmDFS")
+	@Scope("prototype")
+	public ScanningAlgorithm<File> scanningAlgorithemTemplateDFS() {
+		return new ScanningBFS<File>();
+	}
+
+	public MalShareAnalyzer malShareAnalyzer() {
+		return new MalShareAnalyzer();
+	}
+
+	public VirusTotalAnalyzer virusTotalAnalyzer() {
+		return new VirusTotalAnalyzer();
 	}
 
 	@Bean
@@ -63,29 +83,30 @@ public class AppConfig {
 	@Bean
 	public TaskExecutor taskExecutor() {
 		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-		executor.setCorePoolSize(100);
-		executor.setMaxPoolSize(100);
+		executor.setCorePoolSize(corePoolSize);
+		executor.setMaxPoolSize(maxPoolSize);
 		executor.initialize();
-		
+
 		return executor;
 	}
 
-	
 	@Bean("userAnalyzeTypeList")
-	public Collection<FileAnalyzer> userAnalyzeTypeList(YaraAnalyzer yara,MalShareAnalyzer malShare, VirusTotalAnalyzer virusTotal){
+	public Collection<FileAnalyzer> userAnalyzeTypeList(YaraAnalyzer yara, MalShareAnalyzer malShare,
+			VirusTotalAnalyzer virusTotal) {
 		Collection<FileAnalyzer> list = new ArrayList<FileAnalyzer>();
-		
+
 		list.add(yara);
 		list.add(malShare);
 		list.add(virusTotal);
 
 		return list;
 	}
-	
+
 	@Bean("scannerSchedulerAnalyzeTypeList")
-	public Collection<FileAnalyzer> scannerSchedulerAnalyzeTypeList(YaraAnalyzer yara,MalShareAnalyzer malShare, VirusTotalAnalyzer virusTotal){
+	public Collection<FileAnalyzer> scannerSchedulerAnalyzeTypeList(YaraAnalyzer yara, MalShareAnalyzer malShare,
+			VirusTotalAnalyzer virusTotal) {
 		Collection<FileAnalyzer> list = new ArrayList<FileAnalyzer>();
-		
+
 		list.add(yara);
 		list.add(malShare);
 		list.add(virusTotal);

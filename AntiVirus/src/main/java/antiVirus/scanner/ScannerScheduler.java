@@ -18,7 +18,6 @@ import antiVirus.analyzer.FileAnalyzer;
 import antiVirus.analyzer.hashAnalyzer.MalShareAnalyzer;
 import antiVirus.analyzer.hashAnalyzer.VirusTotalAnalyzer;
 import antiVirus.analyzer.yaraAnalyzer.YaraAnalyzer;
-import antiVirus.entities.FolderDB;
 import antiVirus.exceptions.AntiVirusException;
 import antiVirus.logger.loggerManager;
 import antiVirus.scanner.fileFolderHandler.scanningAlgorithem.ScanningBFS;

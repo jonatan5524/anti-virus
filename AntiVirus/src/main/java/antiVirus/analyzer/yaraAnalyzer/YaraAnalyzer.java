@@ -1,12 +1,7 @@
 package antiVirus.analyzer.yaraAnalyzer;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -38,7 +33,7 @@ public class YaraAnalyzer implements FileAnalyzer {
 	private String pythonScriptPath;
 
 	@Value("${yara.pythonCommand}")
-	private String pythonCommand;
+	private String[] pythonCommandOptions;
 
 	@Value("${yara.blacklist}")
 	private String[] yaraBlacklist;
@@ -48,7 +43,9 @@ public class YaraAnalyzer implements FileAnalyzer {
 
 	@Value("${yara.maxYaraFoundHit}")
 	private int maxYaraFoundHit;
-	
+
+	private String pythonCommand;
+
 	public YaraAnalyzer() {
 		yaraRules = new ArrayList<Yara>();
 
@@ -56,10 +53,10 @@ public class YaraAnalyzer implements FileAnalyzer {
 
 	@PostConstruct
 	private void initPath() throws AntiVirusException {
-		Utils.isPythonInstalled();
-		
+		pythonCommand = Utils.isPythonInstalled(pythonCommandOptions);
+
 		try {
-			File pythonTempFile = creatingTempFile(resourcePythonScript);
+			File pythonTempFile = Utils.creatingTempFile(resourcePythonScript);
 
 			pythonScriptPath = pythonTempFile.getPath();
 		} catch (IOException e) {
@@ -67,10 +64,9 @@ public class YaraAnalyzer implements FileAnalyzer {
 		}
 
 	}
-	
 
 	@Override
-	public boolean scanFile(FileDB file,Logger logger) throws AntiVirusYaraException {
+	public boolean scanFile(FileDB file, Logger logger) throws AntiVirusYaraException {
 		logger.info("analyzing file - yara: " + file.getPath());
 		int yaraRuleFound = 0;
 
@@ -81,7 +77,7 @@ public class YaraAnalyzer implements FileAnalyzer {
 				if (isYaraRuleInBlackList(yara)) {
 					logger.info("yara found from blacklist: " + yara.getName());
 					return true;
-				} 
+				}
 
 			}
 			if (yaraRuleFound >= maxYaraFoundHit) {
@@ -98,43 +94,18 @@ public class YaraAnalyzer implements FileAnalyzer {
 		return Arrays.stream(yaraBlacklist).parallel().anyMatch(yara.getResPath()::contains);
 	}
 
-	private boolean executeScript(Yara yara, String path) throws AntiVirusYaraException {
+	private boolean executeScript(Yara yara, String filePath) throws AntiVirusYaraException {
+		String command = String.format("%s \"%s\" \"%s\" \"%s\"", pythonCommand, pythonScriptPath, yara.getTempPath(),
+				filePath);
 
-		Process p;
-		String command = pythonCommand + " \"" + pythonScriptPath + "\" \"" + yara.getTempPath() + "\" \"" + path
-				+ "\"";
-		try {
-			p = Runtime.getRuntime().exec(command);
+		// 1 - error, 0 - output
+		String retVals[] = Utils.executeScript(command);
 
-		} catch (IOException e) {
-			throw new AntiVirusYaraException(
-					"error excuting python script one of these parameters incorrect: " + command, e);
+		if (!retVals[1].isEmpty() && retVals[1].contains("YaraSyntaxError ")) {
+			throw new AntiVirusYaraException("exception from yara python script: " + retVals[1]);
 		}
 
-		BufferedReader stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
-
-		BufferedReader stdError = new BufferedReader(new InputStreamReader(p.getErrorStream()));
-
-		return readFromProcess(stdInput, stdError);
-	}
-
-	private boolean readFromProcess(BufferedReader stdInput, BufferedReader stdError) throws AntiVirusYaraException {
-		String output, outputTot = "";
-		String error, errorTot = "";
-		try {
-			Utils.readFromProcess(stdInput);
-
-			Utils.readFromProcess(stdError);
-		} catch (IOException e) {
-
-			throw new AntiVirusYaraException("exception reading from executable script", e);
-		}
-
-		if (!errorTot.isEmpty() && errorTot.contains("YaraSyntaxError ")) {
-			throw new AntiVirusYaraException("exception from yara python script: " + errorTot);
-		}
-
-		if (!outputTot.isEmpty()) {
+		if (!retVals[0].isEmpty()) {
 			return true;
 		}
 
@@ -153,28 +124,10 @@ public class YaraAnalyzer implements FileAnalyzer {
 		}
 	}
 
-	private File creatingTempFile(Resource res) throws IOException {
-
-		File tempFile = File.createTempFile(res.getFilename(), "");
-		BufferedWriter writer = new BufferedWriter(new FileWriter(tempFile));
-		BufferedReader reader = new BufferedReader(new InputStreamReader(res.getInputStream()));
-
-		String line;
-		while ((line = reader.readLine()) != null) {
-			writer.write(line);
-			writer.newLine();
-		}
-
-		reader.close();
-		writer.close();
-
-		return tempFile;
-	}
-
 	private void addNewYara(Resource res) throws AntiVirusScanningException {
 
 		try {
-			File yaraTempFile = creatingTempFile(res);
+			File yaraTempFile = Utils.creatingTempFile(res);
 
 			yaraRules.add(new Yara(yaraTempFile.getName(), yaraTempFile.getPath(), res.getURI().toString()));
 		} catch (IOException e) {

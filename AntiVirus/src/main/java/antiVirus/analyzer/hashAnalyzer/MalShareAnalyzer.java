@@ -15,33 +15,32 @@ import com.google.gson.Gson;
 import antiVirus.entities.FileDB;
 
 @Service
-public class MalShareAnalyzer extends HashAnalyzer {
+public class MalShareAnalyzer implements HashAnalyzer {
 
-	@Autowired
-	public MalShareAnalyzer(@Value("${MalShare.API_KEY}") String API_KEY, @Value("${MalShare.URL}") String URL) {
-		this.API_KEY = API_KEY;
-		this.URL = URL;
-	}
+	@Value("${MalShare.API_KEY}")
+	private String API_KEY;
+	@Value("${MalShare.URL}")
+	private String URL;
+	private String URI;
 
 	@PostConstruct
-	protected void setURI() {
-		super.setURI();
-		this.URI += "&action=details&hash=";
+	private void setURI() {
+		this.URI = URL + "?api_key=" + API_KEY + "&action=details&hash=";
 	}
 
-	public boolean scanFile(FileDB file,Logger logger) {
+	public boolean scanFile(FileDB file, Logger logger) {
 		if (!file.getHash().isEmpty()) {
 			logger.info("analyzing file - MalShareAnalyzer: " + file.getPath());
 			Get response = Http.get(URI + file.getHash());
 
-			return parseResponse(response,logger,file);
+			return parseResponse(response, logger, file);
 		}
 		return false;
 	}
-	
+
 	@Override
 	public boolean parseResponse(Get response, Logger logger, FileDB file) {
-		
+
 		if (response.responseCode() == 200) {
 			logger.info("found MalShareAnalyzer: " + file.getPath());
 			return true;

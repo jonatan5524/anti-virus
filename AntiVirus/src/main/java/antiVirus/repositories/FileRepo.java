@@ -11,13 +11,14 @@ import antiVirus.entities.FileDB;
 
 @Repository
 public interface FileRepo extends JpaRepository<FileDB, Long> {
-	FileDB findByPath(String Path);
+	
+	public FileDB findByPath(String Path);
 
-	boolean existsByPath(String path);
+	public boolean existsByPath(String path);
 	
-	List<FileDB> findByPathStartingWith(String prefix);
+	public List<FileDB> findByPathStartingWith(String prefix);
 	
-	long count();
+	public long count();
 	
-	long countByPathStartingWith(@Param("prefix")String prefix);
+	public long countByPathStartingWith(@Param("prefix")String prefix);
 }

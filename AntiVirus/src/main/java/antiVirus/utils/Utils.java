@@ -1,9 +1,11 @@
 package antiVirus.utils;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -12,8 +14,11 @@ import java.security.MessageDigest;
 
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
 
+import antiVirus.analyzer.yaraAnalyzer.Yara;
 import antiVirus.exceptions.AntiVirusException;
+import antiVirus.exceptions.AntiVirusYaraException;
 
 public class Utils {
 
@@ -89,37 +94,75 @@ public class Utils {
 
 	}
 
-	public static void isPythonInstalled() throws AntiVirusException {
-		try {
-			testCommand("python --version");
-		} catch (IOException e) {
+	public static String isPythonInstalled(String[] commands) throws AntiVirusException {
+
+		for (String command : commands) {
 			try {
-				testCommand("python3 --version");
-			} catch (IOException e1) {
-				throw new AntiVirusException("python 3 is not installed!");
+				testCommand(command + " --version");
+				return command;
+			} catch (IOException e) {
 			}
-			
 		}
+		
+		throw new AntiVirusException("python 3 is not installed!");
 	}
-	
+
 	private static void testCommand(String command) throws IOException {
-		Runtime rt = Runtime.getRuntime();
-		BufferedReader stdInput;
-		Process proc;
-		proc = rt.exec(command);
-		stdInput = new BufferedReader(new InputStreamReader(proc.getInputStream()));
+		Process proc = Runtime.getRuntime().exec(command);
+		BufferedReader stdInput = new BufferedReader(new InputStreamReader(proc.getInputStream()));
 		String output = readFromProcess(stdInput);
-		if(!output.startsWith("Python 3"))
+		if (!output.startsWith("Python 3"))
 			throw new IOException();
 	}
-	
+
 	public static String readFromProcess(BufferedReader bufferedReader) throws IOException {
-		String output = "",outputTot="";
+		String output = "", outputTot = "";
 		while ((output = bufferedReader.readLine()) != null) {
 			outputTot += output;
 		}
-		
+
 		return outputTot;
+	}
+
+	public static String[] executeScript(String command) throws AntiVirusYaraException {
+
+		Process p;
+		try {
+			p = Runtime.getRuntime().exec(command);
+		} catch (IOException e) {
+			throw new AntiVirusYaraException(
+					"error excuting python script one of these parameters incorrect: " + command, e);
+		}
+
+		BufferedReader stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
+
+		BufferedReader stdError = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+
+		String retVals[] = new String[2];
+		try {
+			retVals[0] = Utils.readFromProcess(stdInput);
+
+			retVals[1] = Utils.readFromProcess(stdError);
+		} catch (IOException e) {
+			throw new AntiVirusYaraException("exception reading from executable script", e);
+		}
+
+		return retVals;
+	}
+
+	public static File creatingTempFile(Resource res) throws IOException {
+
+		File tempFile = File.createTempFile(res.getFilename(), "");
+		try (BufferedWriter writer = new BufferedWriter(new FileWriter(tempFile));
+				BufferedReader reader = new BufferedReader(new InputStreamReader(res.getInputStream()))) {
+			String line;
+			while ((line = reader.readLine()) != null) {
+				writer.write(line);
+				writer.newLine();
+			}
+
+		}
+		return tempFile;
 	}
 
 	public static void emptyFile(String path) throws AntiVirusException {

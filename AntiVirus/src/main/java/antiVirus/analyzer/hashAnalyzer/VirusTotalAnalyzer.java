@@ -17,16 +17,17 @@ import antiVirus.analyzer.hashAnalyzer.jsonParser.VTHash.Data.Attributes;
 import antiVirus.analyzer.hashAnalyzer.jsonParser.VTHash.Data.Attributes.TotalVotes;
 
 @Service
-public class VirusTotalAnalyzer extends HashAnalyzer {
+public class VirusTotalAnalyzer implements HashAnalyzer {
 
 	private Gson gson;
-
-	@Autowired
-	public VirusTotalAnalyzer(@Value("${virus-total.VT_URL}") String URL,
-			@Value("${virus-total.API_KEY}") String API_KEY) {
+	@Value("${virus-total.API_KEY}")
+	private String API_KEY;
+	@Value("${virus-total.VT_URL}")
+	private String URL;
+	private String URI;
+	
+	public VirusTotalAnalyzer() {
 		this.gson = new Gson();
-		this.URL = URL;
-		this.API_KEY = API_KEY;
 	}
 	
 	public boolean scanFile(FileDB file,Logger logger) {

@@ -1,5 +1,6 @@
 package antiVirus.scanner;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -13,7 +14,6 @@ import org.springframework.core.task.TaskExecutor;
 
 import antiVirus.analyzer.Analyzer;
 import antiVirus.analyzer.FileAnalyzer;
-import antiVirus.entities.FolderDB;
 import antiVirus.exceptions.AntiVirusException;
 import antiVirus.logger.loggerManager;
 import antiVirus.scanner.fileFolderHandler.FileFolderScanner;
@@ -60,8 +60,6 @@ public abstract class ScannerAnalyzerInitializer {
 	public void startScan()
 	{
 		isActiveScanning = true;
-
-		fileFolderScanner.setScanningMethod(new ScanningBFS<FolderDB>());
 		taskExecutor.execute(fileFolderScanner);
 
 		try {
