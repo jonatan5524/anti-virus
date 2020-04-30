@@ -1,9 +1,6 @@
 package antiVirus.scanner;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.logging.Logger;
 
 import javax.annotation.PostConstruct;
@@ -13,11 +10,9 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.core.task.TaskExecutor;
 
 import antiVirus.analyzer.Analyzer;
-import antiVirus.analyzer.FileAnalyzer;
 import antiVirus.exceptions.AntiVirusException;
 import antiVirus.logger.loggerManager;
 import antiVirus.scanner.fileFolderHandler.FileFolderScanner;
-import antiVirus.scanner.fileFolderHandler.scanningAlgorithem.ScanningBFS;
 import lombok.Getter;
 
 public abstract class ScannerAnalyzerInitializer {

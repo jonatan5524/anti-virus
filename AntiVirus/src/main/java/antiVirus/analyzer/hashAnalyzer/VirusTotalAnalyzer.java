@@ -24,7 +24,6 @@ public class VirusTotalAnalyzer implements HashAnalyzer {
 	private String API_KEY;
 	@Value("${virus-total.VT_URL}")
 	private String URL;
-	private String URI;
 	
 	public VirusTotalAnalyzer() {
 		this.gson = new Gson();

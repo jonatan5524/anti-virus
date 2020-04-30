@@ -20,7 +20,6 @@ import antiVirus.repositories.FileRepo;
 import antiVirus.scanner.fileFolderHandler.scanningAlgorithem.ScanningAlgorithm;
 import antiVirus.utils.Utils;
 import lombok.Getter;
-import lombok.Setter;
 
 public class FileFolderScanner implements Runnable {
 

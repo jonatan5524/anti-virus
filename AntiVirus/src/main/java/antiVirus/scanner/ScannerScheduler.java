@@ -1,7 +1,5 @@
 package antiVirus.scanner;
 
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.logging.Logger;
 
@@ -11,16 +9,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.CrossOrigin;
-
 import antiVirus.analyzer.Analyzer;
 import antiVirus.analyzer.FileAnalyzer;
-import antiVirus.analyzer.hashAnalyzer.MalShareAnalyzer;
-import antiVirus.analyzer.hashAnalyzer.VirusTotalAnalyzer;
-import antiVirus.analyzer.yaraAnalyzer.YaraAnalyzer;
 import antiVirus.exceptions.AntiVirusException;
-import antiVirus.logger.loggerManager;
-import antiVirus.scanner.fileFolderHandler.scanningAlgorithem.ScanningBFS;
 import antiVirus.utils.Utils;
 
 

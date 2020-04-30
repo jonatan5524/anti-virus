@@ -1,6 +1,5 @@
 package antiVirus.controllers;
 
-import java.util.ArrayList;
 import java.util.Collection;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,13 +13,11 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import antiVirus.exceptions.AntiVirusAnalyzeException;
 import antiVirus.exceptions.AntiVirusException;
 import antiVirus.exceptions.AntiVirusUserException;
 import antiVirus.scanner.ScannerScheduler;
 import antiVirus.scanner.UserRequestScanner;
 import antiVirus.utils.Utils;
-import antlr.collections.List;
 
 @CrossOrigin
 @RestController
