@@ -26,12 +26,13 @@ public class Utils {
 	private static String OS = System.getProperty("os.name").toLowerCase();
 
 	private static final int READ_BYTE_CHUNK_READ = 1024 * 1024;
+	private static final String EMPTY_STRING = "";
 
 	public static String getFileChecksum(MessageDigest digest, File file) {
 		try {
 
-			if (file.length() == 0) {
-				return "";
+			if (isEmpyFile(file)) {
+				return EMPTY_STRING;
 			}
 
 			byte[] bytes = readByteFromFileHash(digest, file);
@@ -47,6 +48,10 @@ public class Utils {
 		} catch (IOException e) {
 			return "";
 		}
+	}
+
+	private static boolean isEmpyFile(File file) {
+		return file.length() == 0;
 	}
 
 	private static byte[] readByteFromFileHash(MessageDigest digest, File file) throws IOException {
@@ -103,7 +108,7 @@ public class Utils {
 			} catch (IOException e) {
 			}
 		}
-		
+
 		throw new AntiVirusException("python 3 is not installed!");
 	}
 
@@ -176,4 +181,15 @@ public class Utils {
 		}
 	}
 
+	public static File[] getHardDrivesList() {
+		return File.listRoots();
+	}
+
+	public static boolean isVirtualFolderUnix(String filePath) {
+		return (isUnix() && filePath != "\\proc" && filePath != "\\sys") || !isUnix();
+	}
+
+	public static boolean isFileExist(String path) {
+		return new File(path).exists();
+	}
 }

@@ -7,6 +7,7 @@ import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import antiVirus.analyzer.Analyzer;
@@ -20,13 +21,14 @@ import antiVirus.utils.Utils;
 public class UserRequestScanner extends ScannerAnalyzerInitializer {
 
 	private String initDirectoryPath;
+	@Value("${Scanning.notSetInitDirectoryPath}")
+	private String notSetInitDirectoryPath;
 	@Autowired
 	@Qualifier("userAnalyzeTypeList")
 	// ranked from worst to best by time and performance
 	private Collection<FileAnalyzer> analyzeTypeList;
 	
 	public UserRequestScanner() {
-		initDirectoryPath = "";
 		logger = Logger.getLogger(UserRequestScanner.class.getName());
 
 	}
@@ -35,6 +37,7 @@ public class UserRequestScanner extends ScannerAnalyzerInitializer {
 	private void onStartUp() {
 		analyzer = applicationContext.getBean(Analyzer.class, fileFolderScanner, analyzeTypeList);
 		analyzer.setLogger(logger);
+		initDirectoryPath = notSetInitDirectoryPath;
 	}
 
 	public void setInitDirectoryPath(String initDirectoryPath) throws AntiVirusUserException {
@@ -52,7 +55,7 @@ public class UserRequestScanner extends ScannerAnalyzerInitializer {
 	}
 
 	public void startRequestedScan() throws AntiVirusException {
-		if (initDirectoryPath == "")
+		if (initDirectoryPath.equals(notSetInitDirectoryPath))
 			throw new AntiVirusUserException("init directory path is not set for user scan");
 		Utils.emptyFile(loggerPath);
 		logger.info("scan started at init scanning Directory: " + initDirectoryPath);

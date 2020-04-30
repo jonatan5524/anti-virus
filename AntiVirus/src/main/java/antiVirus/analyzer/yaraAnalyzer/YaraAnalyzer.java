@@ -66,27 +66,29 @@ public class YaraAnalyzer implements FileAnalyzer {
 	}
 
 	@Override
-	public boolean scanFile(FileDB file, Logger logger) throws AntiVirusYaraException {
+	public boolean scanFile(FileDB file, Logger logger) {
 		logger.info("analyzing file - yara: " + file.getPath());
 		int yaraRuleFound = 0;
 
-		for (Yara yara : yaraRules) {
-			if (executeScript(yara, file.getPath())) {
-				yaraRuleFound++;
+		try {
+			for (Yara yara : yaraRules) {
+				if (executeScript(yara, file.getPath())) {
+					yaraRuleFound++;
 
-				if (isYaraRuleInBlackList(yara)) {
-					logger.info("yara found from blacklist: " + yara.getName());
-					return true;
+					if (isYaraRuleInBlackList(yara)) {
+						logger.info("yara found from blacklist: " + yara.getName());
+						return true;
+					}
+
 				}
-
 			}
-			if (yaraRuleFound >= maxYaraFoundHit) {
-				logger.info("third yara found");
-				return true;
-			}
-
+		} catch (AntiVirusYaraException ex) {
+			ex.printStackTrace();
 		}
-
+		if (yaraRuleFound >= maxYaraFoundHit) {
+			logger.info("third yara found");
+			return true;
+		}
 		return false;
 	}
 

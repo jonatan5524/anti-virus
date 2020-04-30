@@ -34,7 +34,8 @@ public class FileFolderScanner implements Runnable {
 	private boolean isFileFolderScannerActive;
 	@Value("${file.hashAlgorithm}")
 	private String hashAlgorithm;
-
+	@Value("${Scanning.notSetInitDirectoryPath}")
+	private String notSetInitDirectoryPath;
 	private MessageDigest messageDigest;
 
 	@Getter
@@ -42,19 +43,20 @@ public class FileFolderScanner implements Runnable {
 
 	public FileFolderScanner() {
 		isFileFolderScannerActive = false;
-		this.initScanningDirectory = "";
 	}
 
 	@PostConstruct
-	private void initMessageDigest() throws AntiVirusException {
+	private void initMessageDigest() throws AntiVirusScanningException {
+		this.initScanningDirectory = notSetInitDirectoryPath;
 		try {
 			messageDigest = MessageDigest.getInstance(hashAlgorithm);
 		} catch (NoSuchAlgorithmException e) {
-			throw new AntiVirusException("Invalid Hashing Algorithem: " + hashAlgorithm, e);
+			throw new AntiVirusScanningException("Invalid Hashing Algorithem: " + hashAlgorithm, e);
 		}
+		
 	}
 
-	private void scanFolder(File initDir) throws AntiVirusException {
+	private void scanFolder(File initDir) throws AntiVirusScanningException {
 		File parentDirectoryDB;
 		scanningMethod.init();
 		scanningMethod.add(initDir);
@@ -71,12 +73,12 @@ public class FileFolderScanner implements Runnable {
 		}
 	}
 
-	private void scanFilesInDir(File[] files) throws AntiVirusException {
+	private void scanFilesInDir(File[] files) throws AntiVirusScanningException {
 
 		for (File file : files) {
 
 			if (file.isDirectory()) {
-				if (needToEnterFolder(file.getPath())) {
+				if (Utils.isVirtualFolderUnix(file.getPath())) {
 					scanningMethod.add(file);
 				}
 			} else {
@@ -99,34 +101,30 @@ public class FileFolderScanner implements Runnable {
 		}
 	}
 
-	private boolean needToEnterFolder(String filePath) {
-		return (Utils.isUnix() && filePath != "\\proc" && filePath != "\\sys") || !Utils.isUnix();
-	}
+	private void insertFileToDB(File file) throws AntiVirusScanningException {
 
-	private void insertFileToDB(File file) throws AntiVirusException {
+		try {
+			ResultScan resultScanTemp = new ResultScan();
+			resultScanTemp.setResult(null);
+			resultScanTemp.setResultAnalyzer(new HashMap<FileAnalyzer, Boolean>());
 
-		ResultScan resultScanTemp = new ResultScan();
-		resultScanTemp.setResult(null);
-		resultScanTemp.setResultAnalyzer(new HashMap<FileAnalyzer, Boolean>());
+			resultScanTemp.serializeResultAnalyzer();
 
-		resultScanTemp.serializeResultAnalyzer();
+			FileDB fileTemp = new FileDB(Utils.getFileChecksum(messageDigest, file), file.getName(), file.getPath());
+			resultScanTemp.setFiledb(fileTemp);
 
-		FileDB fileTemp = new FileDB(Utils.getFileChecksum(messageDigest, file), file.getName(), file.getPath());
-		resultScanTemp.setFiledb(fileTemp);
+			fileTemp.setResultScan(resultScanTemp);
 
-		fileTemp.setResultScan(resultScanTemp);
-
-		fileRepo.save(fileTemp);
-	}
-
-	private File[] getAllHardDrives() {
-		return File.listRoots();
+			fileRepo.save(fileTemp);
+		} catch (AntiVirusException e) {
+			throw new AntiVirusScanningException("error serializing file " + file.getPath(), e);
+		}
 	}
 
 	private void startScanning() {
 		isFileFolderScannerActive = true;
 
-		if (initScanningDirectory == "") {
+		if (isScanningAllDrives()) {
 			scanAllFileSystem();
 		} else {
 			System.out.println("started scan from: " + initScanningDirectory);
@@ -143,7 +141,7 @@ public class FileFolderScanner implements Runnable {
 	}
 
 	private void scanAllFileSystem() {
-		File[] hardDrives = getAllHardDrives();
+		File[] hardDrives = Utils.getHardDrivesList();
 		System.out.println("scanning all drivers");
 		System.out.println("scanning method: " + scanningMethod.getClass());
 		for (File dir : hardDrives) {
@@ -166,11 +164,15 @@ public class FileFolderScanner implements Runnable {
 
 	public void setInitScanningDirectory(String initScanningDirectory) throws AntiVirusScanningException {
 
-		if (!(new File(initScanningDirectory).exists())) {
+		if (!Utils.isFileExist(initScanningDirectory)) {
 			throw new AntiVirusScanningException("the init Path is invalid! ");
 		}
 
 		this.initScanningDirectory = initScanningDirectory;
+	}
+	
+	public boolean isScanningAllDrives() {
+		return initScanningDirectory.equals(notSetInitDirectoryPath);
 	}
 
 }

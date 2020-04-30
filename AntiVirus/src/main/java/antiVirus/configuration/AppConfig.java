@@ -22,6 +22,8 @@ import antiVirus.scanner.UserRequestScanner;
 import antiVirus.scanner.fileFolderHandler.FileFolderScanner;
 import antiVirus.scanner.fileFolderHandler.scanningAlgorithem.ScanningAlgorithm;
 import antiVirus.scanner.fileFolderHandler.scanningAlgorithem.ScanningBFS;
+import antiVirus.logger.LoggerFormatter;
+import antiVirus.logger.LoggerManager;
 
 @Configuration
 public class AppConfig {
@@ -81,6 +83,17 @@ public class AppConfig {
 	}
 
 	@Bean
+	public LoggerFormatter loggerFormatter() {
+		return new LoggerFormatter();
+	}
+	
+	@Bean
+	public LoggerManager loggerManager() {
+		return new LoggerManager();
+	}
+	
+	
+	@Bean
 	public TaskExecutor taskExecutor() {
 		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
 		executor.setCorePoolSize(corePoolSize);
@@ -113,4 +126,6 @@ public class AppConfig {
 
 		return list;
 	}
+	
+
 }

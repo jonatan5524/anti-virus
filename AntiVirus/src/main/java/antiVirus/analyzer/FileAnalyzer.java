@@ -7,5 +7,5 @@ import antiVirus.exceptions.AntiVirusException;
 
 public interface FileAnalyzer {
 
-	public boolean scanFile(FileDB file,Logger logger) throws AntiVirusException;
+	public boolean scanFile(FileDB file,Logger logger);
 }

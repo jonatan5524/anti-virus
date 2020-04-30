@@ -23,15 +23,13 @@ import antiVirus.scanner.UserRequestScanner;
 @SpringBootApplication
 @ComponentScan
 @EntityScan
-@Controller
 @EnableJpaRepositories
 @EnableScheduling
 public class AntiVirusApplication {
 	
 	public static void main(String[] args) {
 
-		ApplicationContext ctx = SpringApplication.run(AntiVirusApplication.class, args);
-		ScannerScheduler scheduler = ctx.getBean(ScannerScheduler.class);
+		SpringApplication.run(AntiVirusApplication.class, args).getBean(ScannerScheduler.class);
 		
 		System.out.println("web graphic interface available at http://localhost:4060/");
 	}	

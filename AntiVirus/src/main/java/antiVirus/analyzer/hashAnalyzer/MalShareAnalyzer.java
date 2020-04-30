@@ -28,6 +28,7 @@ public class MalShareAnalyzer implements HashAnalyzer {
 		this.URI = URL + "?api_key=" + API_KEY + "&action=details&hash=";
 	}
 
+	@Override
 	public boolean scanFile(FileDB file, Logger logger) {
 		if (!file.getHash().isEmpty()) {
 			logger.info("analyzing file - MalShareAnalyzer: " + file.getPath());

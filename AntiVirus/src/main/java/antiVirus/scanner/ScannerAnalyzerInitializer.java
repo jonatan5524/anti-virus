@@ -6,12 +6,14 @@ import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.task.TaskExecutor;
 
 import antiVirus.analyzer.Analyzer;
+import antiVirus.exceptions.AntiVirusAnalyzeException;
 import antiVirus.exceptions.AntiVirusException;
-import antiVirus.logger.loggerManager;
+import antiVirus.logger.LoggerManager;
 import antiVirus.scanner.fileFolderHandler.FileFolderScanner;
 import lombok.Getter;
 
@@ -19,6 +21,9 @@ public abstract class ScannerAnalyzerInitializer {
 	
 	@Getter
 	protected Logger logger;
+	
+	@Autowired
+	private LoggerManager loggerManager;
 	
 	@Getter
 	protected String loggerPath;
@@ -38,6 +43,9 @@ public abstract class ScannerAnalyzerInitializer {
 
 	@Getter
 	protected boolean isActiveScanning;
+	
+	@Value("${ScannerAnalyzerInitializer.waitBeforeStartAnalyze}")
+	private int waitBeforeStartAnalyze;
 	
 	public ScannerAnalyzerInitializer() {
 		isActiveScanning = false;
@@ -59,10 +67,10 @@ public abstract class ScannerAnalyzerInitializer {
 
 		try {
 
-			Thread.sleep(50);
-
+			Thread.sleep(waitBeforeStartAnalyze);
+			
 			analyzer.startAnalyzingFiles();
-		} catch (AntiVirusException | InterruptedException e) {
+		} catch (AntiVirusAnalyzeException | InterruptedException e) {
 			e.printStackTrace();
 		}
 		isActiveScanning = false;

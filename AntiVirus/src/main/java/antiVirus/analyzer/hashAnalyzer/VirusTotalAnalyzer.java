@@ -29,6 +29,7 @@ public class VirusTotalAnalyzer implements HashAnalyzer {
 		this.gson = new Gson();
 	}
 	
+	@Override
 	public boolean scanFile(FileDB file,Logger logger) {
 		if (!file.getHash().isEmpty()) {
 			logger.info("analyzing file - totalVirus: " + file.getPath());
