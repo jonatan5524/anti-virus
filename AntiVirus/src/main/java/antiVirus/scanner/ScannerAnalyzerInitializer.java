@@ -66,7 +66,6 @@ public abstract class ScannerAnalyzerInitializer {
 		taskExecutor.execute(fileFolderScanner);
 
 		try {
-
 			Thread.sleep(waitBeforeStartAnalyze);
 			
 			analyzer.startAnalyzingFiles();
