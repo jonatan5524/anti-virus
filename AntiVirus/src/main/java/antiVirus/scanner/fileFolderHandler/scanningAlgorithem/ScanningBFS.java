@@ -1,29 +1,30 @@
 package antiVirus.scanner.fileFolderHandler.scanningAlgorithem;
 
-import java.util.Stack;
+import java.util.LinkedList;
+import java.util.Queue;
 
 public class ScanningBFS<T> implements ScanningAlgorithm<T> {
 
-	private Stack<T> stack;
+	private Queue<T> queue;
 
 	@Override
 	public void init() {
-		stack = new Stack<T>();
+		queue = new LinkedList<T>();
 	}
 
 	@Override
 	public T remove() {
-		return stack.pop();
+		return queue.remove();
 	}
 
 	@Override
 	public void add(T t) {
-		stack.add(t);
+		queue.add(t);
 	}
 
 	@Override
 	public boolean isEmpty() {
-		return stack.isEmpty();
+		return queue.isEmpty();
 	}
 
 }

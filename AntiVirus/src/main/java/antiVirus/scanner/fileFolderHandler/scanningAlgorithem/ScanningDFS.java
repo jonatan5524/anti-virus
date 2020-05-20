@@ -1,30 +1,29 @@
 package antiVirus.scanner.fileFolderHandler.scanningAlgorithem;
 
-import java.util.LinkedList;
-import java.util.Queue;
+import java.util.Stack;
 
 public class ScanningDFS<T> implements ScanningAlgorithm<T> {
 
-	private Queue<T> queue;
+	private Stack<T> stack;
 
 	@Override
 	public void init() {
-		queue = new LinkedList<T>();
+		stack = new Stack<T>();
 	}
 
 	@Override
 	public T remove() {
-		return queue.remove();
+		return stack.pop();
 	}
 
 	@Override
 	public void add(T t) {
-		queue.add(t);
+		stack.add(t);
 	}
 
 	@Override
 	public boolean isEmpty() {
-		return queue.isEmpty();
+		return stack.isEmpty();
 	}
 
 }
