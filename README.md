@@ -1,6 +1,7 @@
 # Anti-Virus
-Anti-Virus project for 13 class.
-support all platform, tested on windows 10 and ubuntu version 18
+Anti-Virus project written in Java with Spring Framework for 13 class.
+support all platform, tested on windows 10 and ubuntu version 18.
+
 
 ## Need to be installed:
 * java
