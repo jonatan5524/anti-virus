@@ -8,7 +8,7 @@ support all platform, tested on windows 10 and ubuntu version 18
 * yara-python
 * mysql
 
-**all the defualt setting can be changed in the [application.properties](AntiVirus\src\main\resources\application.properties)**
+**all the defualt setting can be changed in the [application.properties](AntiVirus/src/main/resources/application.properties)**
 
 ## Functionality:
 The program have two scanning threads, one scan is scheduled scan the runs on all the file system and analyze it, the second is requested user scan that can be started using the web user interface.
@@ -23,7 +23,7 @@ The program raises web graphical user interface in http://localhost:4060/ for th
 The program scan the file system or the requested folder using DFS algorithm, each file it saves on the database.
 
 ## database defualt setting:
-**all the defualt setting can be changed in the [application.properties](AntiVirus\src\main\resources\application.properties)**
+**all the defualt setting can be changed in the [application.properties](AntiVirus/src/main/resources/application.properties)**
 
 defualt username and password: root : root
 
@@ -60,7 +60,7 @@ The program runs on all the files on the database and analyze each file (if need
 ## hash analyzer:
 For each file to be analyzed the hash file send to 2 API, [MalShare](https://malshare.com/) and [virusTotal](virustotal.com/gui/).
 
-**both of the api require API KEY the need to be set in the [application.properties](AntiVirus\src\main\resources\application.properties) file** 
+**both of the api require API KEY the need to be set in the [application.properties](AntiVirus/src/main/resources/application.properties) file** 
 
 ### MalShare API:
 The free account in MalShare API supports 2000 API calls per day, each file sent for hash check for this API.
@@ -69,7 +69,7 @@ The free account in MalShare API supports 2000 API calls per day, each file sent
 The free account in VirusTotal API supports 4 API calls per minute and 1000 API calls per day, only suspicious files are send to this API.
 
 ## yara analyzer:
-For each file to be analyzed the file is sent to python script along with yara rules file found in [this folder](AntiVirus\src\main\resources\YaraRules). If the yara rule found in the file, the program check if the rule is found in the blacklist yara rules list found in [application.properties](AntiVirus\src\main\resources\application.properties) file, if not after 3 yara rules found the program declare the file as suspicious file.
+For each file to be analyzed the file is sent to python script along with yara rules file found in [this folder](AntiVirus/src/main/resources/YaraRules). If the yara rule found in the file, the program check if the rule is found in the blacklist yara rules list found in [application.properties](AntiVirus/src/main/resources/application.properties) file, if not after 3 yara rules found the program declare the file as suspicious file.
 
 # Running example:
 console:
@@ -78,8 +78,8 @@ console:
 java -jar Anti-Virus.jar
 ```
 
-![console.png](MD_images\Console.png)
+![console.png](MD_images/Console.png)
 
 user interface:
 
-![gui](MD_images\gui.png)
+![gui](MD_images/gui.png)
