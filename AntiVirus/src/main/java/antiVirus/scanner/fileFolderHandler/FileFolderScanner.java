@@ -28,7 +28,7 @@ public class FileFolderScanner implements Runnable {
 	private FileRepo fileRepo;
 
 	@Autowired
-	@Qualifier("ScanningAlgorithmBFS")
+	@Qualifier("ScanningAlgorithmDFS")
 	private ScanningAlgorithm<File> scanningMethod;
 	@Getter
 	private boolean isFileFolderScannerActive;

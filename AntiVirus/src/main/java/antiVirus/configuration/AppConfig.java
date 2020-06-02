@@ -21,6 +21,7 @@ import antiVirus.scanner.ScannerScheduler;
 import antiVirus.scanner.UserRequestScanner;
 import antiVirus.scanner.fileFolderHandler.FileFolderScanner;
 import antiVirus.scanner.fileFolderHandler.scanningAlgorithem.ScanningAlgorithm;
+import antiVirus.scanner.fileFolderHandler.scanningAlgorithem.ScanningBFS;
 import antiVirus.scanner.fileFolderHandler.scanningAlgorithem.ScanningDFS;
 import antiVirus.logger.LoggerFormatter;
 import antiVirus.logger.LoggerManager;
@@ -36,7 +37,7 @@ public class AppConfig {
 	@Bean("ScanningAlgorithmBFS")
 	@Scope("prototype")
 	public ScanningAlgorithm<File> scanningAlgorithemTemplateBFS() {
-		return new ScanningDFS<File>();
+		return new ScanningBFS<File>();
 	}
 
 	@Bean("ScanningAlgorithmDFS")
