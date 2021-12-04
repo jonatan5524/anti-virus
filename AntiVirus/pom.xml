@@ -11,7 +11,7 @@
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>2.0.5.RELEASE</version>
-		<relativePath />
+		<relativePath/>
 	</parent>
 
 	<dependencies>
@@ -52,7 +52,7 @@
 		<dependency>
 			<groupId>com.vladmihalcea</groupId>
 			<artifactId>hibernate-types-52</artifactId>
-			<version>2.4.3</version>
+			<version>2.13.0</version>
 		</dependency>
 
 
