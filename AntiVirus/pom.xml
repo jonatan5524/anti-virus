@@ -11,7 +11,7 @@
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>2.0.5.RELEASE</version>
-		<relativePath />
+		<relativePath/>
 	</parent>
 
 	<dependencies>
@@ -118,7 +118,7 @@
 		<dependency>
 			<groupId>org.javassist</groupId>
 			<artifactId>javassist</artifactId>
-			<version>3.18.2-GA</version>
+			<version>3.28.0-GA</version>
 		</dependency>
 
 		<dependency>
